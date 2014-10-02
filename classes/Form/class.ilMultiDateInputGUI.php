@@ -11,7 +11,7 @@ include_once("./Services/Form/classes/class.ilCustomInputGUI.php");
  */
 require_once('./Services/Form/classes/class.ilSubEnabledFormPropertyGUI.php');
 
-class ilMultiDateInputGUI extends ilMultipleTextInputGUI {
+class ilMultiDateInputGUI extends ilMultipleTextInput2GUI {
 
 	/**
 	 * @return bool returns true iff all values are in the form DD/MM.

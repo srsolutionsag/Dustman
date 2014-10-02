@@ -5,8 +5,8 @@ of a course/group after this time it gets moved automatically to the trash.
 
 ###Features
 * Excluding Methods:
-* * Specify some categories who should be excluded.
-* * Specify some keyword-tags which should be excluded.
+  * Specify some categories who should be excluded.
+  * Specify some keyword-tags which should be excluded.
 * Get an automated e-mail x days before the object gets moved to the trash.
 
 ###Installation

@@ -178,9 +178,9 @@ class ilDustmanCron extends ilCronJob {
 		$this->log->write("[Dustman] Send Email to: ".$email_address);
 
 		$objecttype = $object['type'] == 'crs'?'Kurs':'Gruppe';
-		$body = str_replace('__Objekttyp__', $objecttype, $this->reminderBody);
-		$body = str_replace('__Titel__', $object['title'], $body);
-		$body = str_replace('__Link__', $link, $body);
+		$body = str_replace('[Objekttyp]', $objecttype, $this->reminderBody);
+		$body = str_replace('[Titel]', $object['title'], $body);
+		$body = str_replace('[Link]', $link, $body);
 
 		$mail = new ilMimeMail();
 		$mail->autoCheck(false);

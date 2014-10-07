@@ -12,4 +12,4 @@ keyword#:#Schlüsselwort
 checkdates#:#Löschdaten (TT/MM)
 only_ddmm_allowed#:#Bitte beachten Sie das Format TT/MM. Zum Beispiel: 15/03 oder 01/01
 placeholder#:#Geben Sie den Namen der Kategorie an.
-reminder_content_info#:#Im Inhalt der Mail können Sie Platzhalter benutzen. Schreiben Sie __Titel__ für den Titel des zu löschenden Objektes, __Link__ für einen Link zum Kurs oder zur gruppe und __Objekttyp__ um entweder 'Kurs' oder 'Gruppe' zu erhalten, entsprechend dem Typ des zu löschenden Objektes.
+reminder_content_info#:#Im Inhalt der Mail können Sie Platzhalter benutzen. Schreiben Sie [Titel] für den Titel des zu löschenden Objektes, [Link] für einen Link zum Kurs oder zur gruppe und [Objekttyp] um entweder 'Kurs' oder 'Gruppe' zu erhalten, entsprechend dem Typ des zu löschenden Objektes.

@@ -1,46 +1,51 @@
 <?php
 /* Copyright (c) 1998-2009 ILIAS open source, Extended GPL, see docs/LICENSE */
 
-include_once("./Services/Form/classes/class.ilCustomInputGUI.php");
+require_once('./Services/Form/classes/class.ilCustomInputGUI.php');
+require_once('./Services/Form/classes/class.ilSubEnabledFormPropertyGUI.php');
 
 /**
  * Class ilMultipleTextInput2GUI
  *
- * @author Oskar Truffer <ot@studer-raimann.ch>
+ * @author  Oskar Truffer <ot@studer-raimann.ch>
  * @version $Id:
  */
-require_once('./Services/Form/classes/class.ilSubEnabledFormPropertyGUI.php');
-
-class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI{
+class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI {
 
 	/**
 	 * @var array
 	 */
 	protected $values;
-
 	/**
 	 * @var string
 	 */
 	protected $placeholder;
-
 	/**
 	 * @var bool
 	 */
 	protected $disableOldFields;
-
 	/**
 	 * @var ilDustmanPlugin
 	 */
 	protected $pl;
 
 
-	public function __construct($title, $post_var, $placeholder){
+	/**
+	 * @param string $title
+	 * @param string $post_var
+	 * @param        $placeholder
+	 */
+	public function __construct($title, $post_var, $placeholder) {
 		parent::__construct($title, $post_var);
 		$this->placeholder = $placeholder;
 		$this->pl = new ilDustmanPlugin();
 	}
 
-	public function getHtml(){
+
+	/**
+	 * @return string
+	 */
+	public function getHtml() {
 		$tpl = $this->pl->getTemplate("tpl.multiple_input.html");
 		$tpl = $this->buildHTML($tpl);
 
@@ -49,11 +54,13 @@ class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI{
 		return $tpl->get();
 	}
 
+
 	/**
 	 * @param $tpl ilTemplate
+	 *
 	 * @return ilTemplate
 	 */
-	protected function buildHTML($tpl){
+	protected function buildHTML($tpl) {
 		$tpl->setCurrentBlock("title");
 		$tpl->setVariable("CSS_PATH", $this->pl->getStyleSheetLocation("content.css"));
 		$tpl->setVariable("X_IMAGE_PATH", $this->pl->getImagePath("x_image.png"));
@@ -65,13 +72,14 @@ class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI{
 		$tpl->touchBlock("lvo_options_start");
 		$tpl->setVariable("POSTVAR2", $this->getPostVar());
 		$new = 0;
-		foreach($this->values as $id => $value){
-			if($value){
+		foreach ($this->values as $id => $value) {
+			if ($value) {
 				$tpl->setCurrentBlock("lvo_option");
-				$tpl->setVariable("OPTION_ID", $this->getPostVar()."[".$id."]");
+				$tpl->setVariable("OPTION_ID", $this->getPostVar() . "[" . $id . "]");
 				$tpl->setVariable("NEW_OPTION", $new);
-				if(substr($id, 0, 3) == "new")
-					$new++;
+				if (substr($id, 0, 3) == "new") {
+					$new ++;
+				}
 				$tpl->setVariable("OPTION_VALUE", $value);
 				$tpl->setVariable("OPTION_CLASS", "lvo_option");
 				$tpl->setVariable("PLACEHOLDER_CLASS", "");
@@ -84,11 +92,11 @@ class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI{
 		}
 
 		$tpl->setCurrentBlock("lvo_option");
-		$tpl->setVariable("OPTION_ID", $this->getPostVar()."[new".$new."]");
+		$tpl->setVariable("OPTION_ID", $this->getPostVar() . "[new" . $new . "]");
 		$tpl->setVariable("NEW_OPTION", $new);
 		$tpl->setVariable("OPTION_TITLE", "");
 		$tpl->setVariable("OPTION_CLASS", "lvo_new_option");
-		$tpl->setVariable("PLACEHOLDER", "placeholder = '".$this->placeholder."'");
+		$tpl->setVariable("PLACEHOLDER", "placeholder = '" . $this->placeholder . "'");
 		$tpl->setVariable("PLACEHOLDER_CLASS", "placeholder");
 		$tpl->setVariable("X_IMAGE_PATH", $this->pl->getImagePath("x_image.png"));
 		$tpl->setVariable("X_DISPLAY", "none");
@@ -99,39 +107,40 @@ class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI{
 		return $tpl;
 	}
 
+
 	/**
 	 * @param $value mixed
 	 */
-	function setValueByArray($value)
-	{
+	function setValueByArray($value) {
 		$cleaned_values = array();
-		foreach($value[$this->getPostVar()] as $v) {
-			if($v)
+		foreach ($value[$this->getPostVar()] as $v) {
+			if ($v) {
 				$cleaned_values[] = $v;
+			}
 		}
 
-		foreach($this->getSubItems() as $item)
-		{
+		foreach ($this->getSubItems() as $item) {
 			$item->setValueByArray($value);
 		}
-		$this->values = is_array($cleaned_values)?$cleaned_values:array();
+		$this->values = is_array($cleaned_values) ? $cleaned_values : array();
 	}
+
 
 	/**
 	 * @param boolean $disableOldFields
 	 */
-	public function setDisableOldFields($disableOldFields)
-	{
+	public function setDisableOldFields($disableOldFields) {
 		$this->disableOldFields = $disableOldFields;
 	}
+
 
 	/**
 	 * @return boolean
 	 */
-	public function getDisableOldFields()
-	{
+	public function getDisableOldFields() {
 		return $this->disableOldFields;
 	}
+
 
 	/**
 	 * @param $template ilTemplate
@@ -142,18 +151,29 @@ class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI{
 		$template->parseCurrentBlock();
 	}
 
-	public function checkInput(){
+
+	/**
+	 * @return bool
+	 */
+	public function checkInput() {
 		return true;
 	}
 
+
+	/**
+	 * @return array
+	 */
 	public function getValues() {
 		return $this->values;
 	}
 
+
+	/**
+	 * @return array
+	 */
 	public function getValue() {
 		return $this->values;
 	}
-
 }
 
 ?>

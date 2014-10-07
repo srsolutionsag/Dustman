@@ -4,14 +4,14 @@
 include_once("./Services/Form/classes/class.ilCustomInputGUI.php");
 
 /**
- * Class ilMultipleTextInputGUI
+ * Class ilMultipleTextInput2GUI
  *
  * @author Oskar Truffer <ot@studer-raimann.ch>
  * @version $Id:
  */
 require_once('./Services/Form/classes/class.ilSubEnabledFormPropertyGUI.php');
 
-class ilMultipleTextInputGUI extends ilSubEnabledFormPropertyGUI{
+class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI{
 
 	/**
 	 * @var array

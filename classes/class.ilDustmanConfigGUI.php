@@ -5,7 +5,7 @@ require_once('class.ilDustmanPlugin.php');
 require_once('./Services/Component/classes/class.ilComponent.php');
 require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultiSelectSearchInputGUI.php');
 require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilCategoryMultiSelectInputGUI.php');
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultipleTextInputGUI.php');
+require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultipleTextInput2GUI.php');
 require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultiDateInputGUI.php');
 
 /**
@@ -185,7 +185,7 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI {
 		$item->setMinimumInputLength(2);
 		$form->addItem($item);
 
-		$item = new ilMultipleTextInputGUI($this->pl->txt('keywords'), 'keywords', $this->pl->txt('keyword'));
+		$item = new ilMultipleTextInput2GUI($this->pl->txt('keywords'), 'keywords', $this->pl->txt('keyword'));
 		$form->addItem($item);
 
 		$item = new ilMultiDateInputGUI($this->pl->txt('checkdates'), 'checkdates', $this->pl->txt('checkdates'));

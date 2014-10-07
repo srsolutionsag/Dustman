@@ -11,11 +11,14 @@ class ilDustmanConfig {
 	const RESTRICTED_NONE = 0;
 	const RESTRICTED_BY_LOCAL_READABILITY = 1;
 	const RESTRICTED_BY_ORG_UNITS = 2;
-
 	/**
 	 * @var string
 	 */
 	protected $table_name = '';
+	/**
+	 * @var array
+	 */
+	protected static $value_cache = array();
 
 
 	/**
@@ -106,15 +109,19 @@ class ilDustmanConfig {
 	 * @return bool|string
 	 */
 	public function getValue($key) {
+		if (isset(self::$value_cache[$key])) {
+			return self::$value_cache[$key];
+		}
 		global $ilDB;
-		$result = $ilDB->query(
-			"SELECT config_value FROM " . $this->getTableName() . " WHERE config_key = " . $ilDB->quote($key, "text"));
+		$result = $ilDB->query("SELECT config_value FROM " . $this->getTableName() . " WHERE config_key = " . $ilDB->quote($key, "text"));
 		if ($result->numRows() == 0) {
 			return false;
 		}
 		$record = $ilDB->fetchAssoc($result);
 
-		return (string)$record['config_value'];
+		self::$value_cache[$key] = (string)$record['config_value'];
+
+		return self::$value_cache[$key];
 	}
 
 

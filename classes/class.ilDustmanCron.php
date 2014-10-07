@@ -4,6 +4,7 @@ require_once './Services/Cron/classes/class.ilCronJob.php';
 require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/class.ilDustmanStatus.php';
 require_once './Services/Mail/classes/class.ilMimeMail.php';
 require_once './Services/Link/classes/class.ilLink.php';
+require_once './Services/Repository/classes/class.ilRepUtil.php';
 
 
 class ilDustmanCron extends ilCronJob {
@@ -106,7 +107,7 @@ class ilDustmanCron extends ilCronJob {
 	 */
 	public function getDefaultScheduleType()
 	{
-		return self::SCHEDULE_TYPE_IN_MINUTES;
+		return self::SCHEDULE_TYPE_DAILY;
 	}
 
 	/**
@@ -126,18 +127,18 @@ class ilDustmanCron extends ilCronJob {
 	 */
 	public function run()
 	{
-		if($this->isMailDate()) {
-			$this->log->write("[Dustman] In {$this->reminderBeforeDays} days some objects will be deleted. Dustman sends reminder E-Mails.");
-			$this->writeEmails();
-		} else {
-			$this->log->write("[Dustman] Today plus {$this->reminderBeforeDays} days is not a deletion Day. Dustman does not send any emails.");
-		}
-
 		if($this->isCheckDate()) {
 			$this->log->write("[Dustman] Today some objects get deleted!");
 			$this->deleteObjects();
 		} else {
 			$this->log->write("[Dustman] Today is not a deletion day.");
+		}
+
+		if($this->isMailDate()) {
+			$this->log->write("[Dustman] In {$this->reminderBeforeDays} days some objects will be deleted. Dustman sends reminder E-Mails.");
+			$this->writeEmails();
+		} else {
+			$this->log->write("[Dustman] Today plus {$this->reminderBeforeDays} days is not a deletion Day. Dustman does not send any emails.");
 		}
 
 		return new ilDustmanResult(ilDustmanResult::STATUS_OK, "Cron job terminated successfully.");
@@ -158,7 +159,7 @@ class ilDustmanCron extends ilCronJob {
 	}
 
 	protected function deleteObject($object) {
-		$this->log->write("Deleting obj: ".$object['title']." (".$object['obj_id'].")");
+		ilRepUtil::deleteObjects(null, array($object['ref_id']));
 	}
 
 	protected function writeEmail($object) {
@@ -268,6 +269,10 @@ class ilDustmanCron extends ilCronJob {
 		return count($intersect) > 0;
 	}
 
+	/**
+	 * @param $days all crs/grp that are older than $days days are returned. With filter of types, keywords.
+	 * @return array
+	 */
 	protected function getPrefilteredObjectsInDays($days){
 		$in = $this->getInTypeStatement();
 		$keywords = $this->getKeywordsStatement();
@@ -321,47 +326,6 @@ class ilDustmanCron extends ilCronJob {
 	protected function getKeywordsStatement() {
 		return $this->db->in('keyword.keyword', $this->keywords, false, 'text');
 	}
-
-	/**
-	 * @return int[] Returns all category ref_ids which should be skipped in the deletion.
-	 */
-	protected function getCategoryRefIds() {
-		$category_ids = $this->category_ids;
-		$category_ref_ids = array();
-
-		foreach($category_ids as $category_id){
-			$category_ref = $this->getCategoryRefId($category_id);
-			if($category_ref !== null)
-				$category_ref_ids[$category_id] = $category_ref;
-		}
-
-		return $category_ref_ids;
-	}
-
-	/**
-	 * @param $category_id int
-	 * @return int|null Returns the categories ref_id if there is any null otherwise. And logs if there are problems.
-	 */
-	protected function getCategoryRefId($category_id){
-		global $ilLog;
-
-		$category_id = $this->db->quote($category_id, 'integer');
-		$query = "
-				SELECT obj_id, ref_id From object_reference WHERE obj_id = $category_id
-			";
-		$res = $this->db->query($query);
-		$numRows = $this->db->numRows($res);
-
-		if($numRows > 1) {
-			$ilLog->write("[WARNING - ilDustmanCron] There are multiple references to a category! Taking the first one.");
-		} elseif($numRows == 0) {
-			$ilLog->write("[WARNING - ilDustmanCron] There are no references to a category! Skipping obj id $category_id");
-			return null;
-		}
-		$row = $this->db->fetchAssoc($res);
-		return $row['ref_id'];
-	}
-
 }
 
 

@@ -3,31 +3,41 @@ include_once("./Services/Cron/classes/class.ilCronHookPlugin.php");
 require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/class.ilDustmanConfig.php';
 require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/class.ilDustmanCron.php';
 
+/**
+ * Class ilDustmanPlugin
+ *
+ * @author Oskar Truffer <ot@studer-raimann.ch>
+ */
 class ilDustmanPlugin extends ilCronHookPlugin {
 
-
-	/** @var  ilDustmanCron */
+	/**
+	 * @var  ilDustmanCron
+	 */
 	protected static $instance;
-
-	/** @var  ilDustmanConfig */
+	/**
+	 * @var  ilDustmanConfig
+	 */
 	protected $configObject;
+
 
 	/**
 	 * @return ilDustmanCron[]
 	 */
-	public function getCronJobInstances()
-	{
+	public function getCronJobInstances() {
 		$this->loadInstance();
-		return array(self::$instance);
+
+		return array( self::$instance );
 	}
 
-	public function getCronJobInstance($a_job_id)
-	{
-		if($a_job_id == ilDustmanCron::DUSTMAN_ID) {
+
+	public function getCronJobInstance($a_job_id) {
+		if ($a_job_id == ilDustmanCron::DUSTMAN_ID) {
 			$this->loadInstance();
+
 			return self::$instance;
 		}
 	}
+
 
 	/**
 	 * Get Plugin Name. Must be same as in class name il<Name>Plugin
@@ -38,15 +48,17 @@ class ilDustmanPlugin extends ilCronHookPlugin {
 	 *
 	 * @return    string    Plugin Name
 	 */
-	function getPluginName()
-	{
+	function getPluginName() {
 		return 'Dustman';
 	}
 
+
 	protected function loadInstance() {
-		if(self::$instance === null)
+		if (self::$instance === NULL) {
 			self::$instance = new ilDustmanCron();
+		}
 	}
+
 
 	/**
 	 * @return string
@@ -55,13 +67,17 @@ class ilDustmanPlugin extends ilCronHookPlugin {
 		return 'xdustman_config';
 	}
 
-	/** @return ilDustmanConfig */
+
+	/**
+	 * @return ilDustmanConfig
+	 */
 	public function getConfigObject() {
-		if($this->configObject === null)
+		if ($this->configObject === NULL) {
 			$this->configObject = new ilDustmanConfig($this->getConfigTableName());
+		}
+
 		return $this->configObject;
 	}
 }
-
 
 ?>

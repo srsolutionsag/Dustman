@@ -11,11 +11,14 @@ class ilDustmanConfig {
 	const RESTRICTED_NONE = 0;
 	const RESTRICTED_BY_LOCAL_READABILITY = 1;
 	const RESTRICTED_BY_ORG_UNITS = 2;
-
 	/**
 	 * @var string
 	 */
 	protected $table_name = '';
+	/**
+	 * @var array
+	 */
+	protected static $value_cache = array();
 
 
 	/**

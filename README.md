@@ -21,9 +21,10 @@ git clone https://github.com/studer-raimann/Dustman.git
 ```
 
 ###Contact
-studer + raimann ag
-Waldeggstrasse 72
-3097 Liebefeld
+studer + raimann ag  
+Waldeggstrasse 72  
+3097 Liebefeld  
+Switzerland 
 
-info@studer-raimann.ch/
-www.studer-raimann.ch
+info@studer-raimann.ch  
+www.studer-raimann.ch  

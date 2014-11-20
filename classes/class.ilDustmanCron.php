@@ -208,7 +208,7 @@ class ilDustmanCron extends ilCronJob {
 
 		$mail = new ilMimeMail();
 		$mail->autoCheck(false);
-		$mail->From('no-reply@elearn.ku.de');
+		$mail->From($this->pl->getConfigObject()->getValue('email'));
 		$mail->To($email_address);
 		$mail->Subject($this->reminderTitle);
 		$mail->Body($body);

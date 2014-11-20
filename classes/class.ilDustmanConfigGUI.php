@@ -236,7 +236,10 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI {
 				'type' => 'ilTextAreaInputGUI',
 				'info' => true
 			),
-
+			'email' => array(
+				'type' => 'ilEmailInputGUI',
+				'info' => false
+			),
 		);
 
 		return $this->fields;

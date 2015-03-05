@@ -1,0 +1,16 @@
+dont_delete_objects_in_category#:#Don't delete objects in these folders
+delete_groups#:#Delete old groups
+delete_courses#:#Delete old courses
+delete_objects_in_days#:#Delete Objects older than x days
+reminder_in_days#:#Send E-Mail x days before objects are deleted
+reminder_title#:#E-Mail Title
+reminder_content#:#E-Mail Content
+conf_saved#:#Configuration saved.
+configuration#:#Configuration
+keywords#:#Don't delete objects with these keywords
+keyword#:#Keyword
+checkdates#:#Delete Dates (DD/MM)
+only_ddmm_allowed#:#Please enter the dates in the format DD/MM. For Example: 15/03 or 01/01
+placeholder#:#Enter the name of the category
+reminder_content_info#:#You can use placeholders in the E-Mail Content. Use [Titel] for the title of the object that will be deleted, [Link] for a link to the course or group and [Objekttyp] to get either 'Kurs' or 'Gruppe', depending on the type of the object that will be deleted.
+email#:#Sender E-Mail

@@ -61,7 +61,7 @@ class ilDustmanCron extends ilCronJob {
 	/**
 	 * @var  ilLog
 	 */
-	protected $ilLog;
+	protected $log;
 
 
 	public function __construct() {

@@ -5,6 +5,7 @@ require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classe
 require_once './Services/Mail/classes/class.ilMimeMail.php';
 require_once './Services/Link/classes/class.ilLink.php';
 require_once './Services/Repository/classes/class.ilRepUtil.php';
+require_once './Services/Membership/classes/class.ilParticipants.php';
 
 /**
  * Class ilDustmanCron

@@ -299,8 +299,10 @@ class ilDustmanCron extends ilCronJob {
 		global $tree;
 
 		$path = $tree->getNodePath($ref_id);
-		foreach ($path as $node) {
-			$obj_id_path[] = $node['obj_id'];
+		if (is_array($path)) {
+			foreach ($path as $node) {
+				$obj_id_path[] = $node['obj_id'];
+			}
 		}
 
 		$intersect = array_intersect($this->category_ids, $obj_id_path);
@@ -310,7 +312,7 @@ class ilDustmanCron extends ilCronJob {
 
 
 	/**
-	 * @param $days all crs/grp that are older than $days days are returned. With filter of types, keywords.
+	 * @param $days int all crs/grp that are older than $days days are returned. With filter of types, keywords.
 	 *
 	 * @return array
 	 */
@@ -371,6 +373,9 @@ class ilDustmanCron extends ilCronJob {
 	}
 
 
+	/**
+	 * @return string
+	 */
 	protected function getKeywordsStatement() {
 		return $this->db->in('keyword.keyword', $this->keywords, false, 'text');
 	}

@@ -30,6 +30,10 @@ class ilDustmanPlugin extends ilCronHookPlugin {
 	}
 
 
+	/**
+	 * @param $a_job_id
+	 * @return \ilDustmanCron
+	 */
 	public function getCronJobInstance($a_job_id) {
 		if ($a_job_id == ilDustmanCron::DUSTMAN_ID) {
 			$this->loadInstance();
@@ -79,5 +83,3 @@ class ilDustmanPlugin extends ilCronHookPlugin {
 		return $this->configObject;
 	}
 }
-
-?>

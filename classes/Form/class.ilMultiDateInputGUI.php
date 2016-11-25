@@ -18,7 +18,7 @@ class ilMultiDateInputGUI extends ilMultipleTextInput2GUI {
 	public function checkInput() {
 		$pl = new ilDustmanPlugin();
 		foreach ($this->values as $value) {
-			if (! $this->checkSingleInput($value)) {
+			if (!$this->checkSingleInput($value)) {
 				$this->setAlert($pl->txt('only_ddmm_allowed'));
 
 				return false;

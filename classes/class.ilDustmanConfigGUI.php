@@ -212,33 +212,33 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI {
 	 */
 	protected function getFields() {
 		$this->fields = array(
-			'delete_groups' => array(
+			'delete_groups'          => array(
 				'type' => 'ilCheckboxInputGUI',
 				'info' => false,
 			),
-			'delete_courses' => array(
+			'delete_courses'         => array(
 				'type' => 'ilCheckboxInputGUI',
 				'info' => false,
 			),
 			'delete_objects_in_days' => array(
 				'type' => 'ilNumberInputGUI',
-				'info' => false
+				'info' => false,
 			),
-			'reminder_in_days' => array(
+			'reminder_in_days'       => array(
 				'type' => 'ilNumberInputGUI',
-				'info' => false
+				'info' => false,
 			),
-			'reminder_title' => array(
+			'reminder_title'         => array(
 				'type' => 'ilTextInputGUI',
-				'info' => false
+				'info' => false,
 			),
-			'reminder_content' => array(
+			'reminder_content'       => array(
 				'type' => 'ilTextAreaInputGUI',
-				'info' => true
+				'info' => true,
 			),
-			'email' => array(
+			'email'                  => array(
 				'type' => 'ilEmailInputGUI',
-				'info' => false
+				'info' => false,
 			),
 		);
 

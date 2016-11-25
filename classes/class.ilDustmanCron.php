@@ -180,13 +180,13 @@ class ilDustmanCron extends ilCronJob {
 
 
 	protected function deleteObject($object) {
-		ilRepUtil::deleteObjects(NULL, array( $object['ref_id'] ));
+		ilRepUtil::deleteObjects(null, array( $object['ref_id'] ));
 	}
 
 
 	protected function writeEmail($object) {
 		$this->log->write("[Dustman] Writing email that obj " . $object['title'] . " (" . $object['obj_id']
-			. ") will be deleted in {$this->reminderBeforeDays} days.");
+		                  . ") will be deleted in {$this->reminderBeforeDays} days.");
 		$participants = ilParticipants::getInstanceByObjId($object['obj_id']);
 		$admins = $participants->getAdmins();
 		foreach ($admins as $admin) {
@@ -224,7 +224,7 @@ class ilDustmanCron extends ilCronJob {
 		$prefiltered_objects = $this->getPrefilteredObjectsAsArray();
 		$objects = array();
 		foreach ($prefiltered_objects as $obj) {
-			if (! $this->inCategories($obj['ref_id'])) {
+			if (!$this->inCategories($obj['ref_id'])) {
 				$objects[] = $obj;
 			}
 		}
@@ -240,7 +240,7 @@ class ilDustmanCron extends ilCronJob {
 		$prefiltered_objects = $this->getPrefilteredObjectsPrequel();
 		$objects = array();
 		foreach ($prefiltered_objects as $obj) {
-			if (! $this->inCategories($obj['ref_id'])) {
+			if (!$this->inCategories($obj['ref_id'])) {
 				$objects[] = $obj;
 			}
 		}
@@ -267,8 +267,8 @@ class ilDustmanCron extends ilCronJob {
 	 *
 	 * @return bool Returns true if dateTime is a checkdate
 	 */
-	protected function isCheckDate($dateTime = NULL) {
-		if ($dateTime === NULL) {
+	protected function isCheckDate($dateTime = null) {
+		if ($dateTime === null) {
 			$dateTime = new DateTime();
 		}
 

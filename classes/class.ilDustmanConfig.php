@@ -181,5 +181,3 @@ class ilDustmanConfig {
 		return preg_replace_callback('/-([a-z])/', $func, $str);
 	}
 }
-
-?>

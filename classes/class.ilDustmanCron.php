@@ -375,5 +375,3 @@ class ilDustmanCron extends ilCronJob {
 		return $this->db->in('keyword.keyword', $this->keywords, false, 'text');
 	}
 }
-
-?>

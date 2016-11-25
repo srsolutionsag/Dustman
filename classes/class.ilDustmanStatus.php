@@ -20,5 +20,3 @@ class ilDustmanResult extends ilCronJobResult {
 		$this->setCode($code);
 	}
 }
-
-?>

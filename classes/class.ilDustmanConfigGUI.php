@@ -267,5 +267,3 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI {
 		exit;
 	}
 }
-
-?>

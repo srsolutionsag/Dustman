@@ -298,6 +298,7 @@ class ilDustmanCron extends ilCronJob {
 	protected function inCategories($ref_id) {
 		global $tree;
 
+        $obj_id_path = array();
 		$path = $tree->getNodePath($ref_id);
 		if (is_array($path)) {
 			foreach ($path as $node) {

@@ -180,7 +180,12 @@ class ilDustmanCron extends ilCronJob {
 
 
 	protected function deleteObject($object) {
-		ilRepUtil::deleteObjects(null, array( $object['ref_id'] ));
+		try {
+            $this->log->write("[Dustman] Deleting object: " . implode(', ', $object));
+            ilRepUtil::deleteObjects(null, array( $object['ref_id'] ));
+        } catch (Exception $e) {
+            $this->log->write($e->getMessage() . $e->getTraceAsString());
+        }
 	}
 
 

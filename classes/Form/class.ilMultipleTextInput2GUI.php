@@ -113,16 +113,21 @@ class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI {
 	 */
 	function setValueByArray($value) {
 		$cleaned_values = array();
-		foreach ($value[$this->getPostVar()] as $v) {
-			if ($v) {
-				$cleaned_values[] = $v;
-			}
-		}
+        $_value = $value[$this->getPostVar()];
+        if (is_array($_value)) {
+            foreach ($_value as $v) {
+                if ($v) {
+                    $cleaned_values[] = $v;
+                }
+            }
+        } else if ($_value) {
+            $cleaned_values[] = $_value;
+        }
 
 		foreach ($this->getSubItems() as $item) {
 			$item->setValueByArray($value);
 		}
-		$this->values = is_array($cleaned_values) ? $cleaned_values : array();
+        $this->values = $cleaned_values;
 	}
 
 
@@ -175,5 +180,3 @@ class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI {
 		return $this->values;
 	}
 }
-
-?>

@@ -10,6 +10,8 @@ require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classe
  */
 class ilDustmanPlugin extends ilCronHookPlugin {
 
+	const PLUGIN_NAME = 'Dustman';
+
 	/**
 	 * @var  ilDustmanCron
 	 */
@@ -53,7 +55,7 @@ class ilDustmanPlugin extends ilCronHookPlugin {
 	 * @return    string    Plugin Name
 	 */
 	function getPluginName() {
-		return 'Dustman';
+		return self::PLUGIN_NAME;
 	}
 
 

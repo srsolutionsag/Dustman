@@ -88,6 +88,21 @@ class ilDustmanCron extends ilCronJob {
 		$this->reminderBody = $config->getValue('reminder_content');
 	}
 
+	/**
+	 * @return string
+	 */
+	public function getTitle() {
+		return ilDustmanPlugin::PLUGIN_NAME;
+	}
+
+
+	/**
+	 * @return string
+	 */
+	public function getDescription() {
+		return "";
+	}
+
 
 	/**
 	 * Get id
@@ -334,7 +349,7 @@ class ilDustmanCron extends ilCronJob {
 				$in
 			AND obj.create_date < DATE_SUB(NOW(), INTERVAL $in_days DAY)
 			AND NOT EXISTS (
-					SELECT * FROM il_meta_keyword keyword WHERE keyword.obj_id = obj.obj_id AND $keywords
+					SELECT * FROM il_tag WHERE il_tag.obj_id = obj.obj_id AND $keywords
 				)
 			";
 
@@ -383,6 +398,6 @@ class ilDustmanCron extends ilCronJob {
 	 * @return string
 	 */
 	protected function getKeywordsStatement() {
-		return $this->db->in('keyword.keyword', $this->keywords, false, 'text');
+		return $this->db->in('il_tag.tag', $this->keywords, false, 'text');
 	}
 }

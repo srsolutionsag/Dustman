@@ -208,6 +208,8 @@ class ilDustmanCron extends ilCronJob
 
     protected function writeEmailToUser($user_id, $object)
     {
+        global $DIC;
+
         $user          = new ilObjUser($user_id);
         $email_address = $user->getEmail();
         $link          = ilLink::_getStaticLink($object['ref_id'], $object['type']);
@@ -219,8 +221,11 @@ class ilDustmanCron extends ilCronJob
         $body       = str_replace('[Titel]', $object['title'], $body);
         $body       = str_replace('[Link]', $link, $body);
 
+        $senderFactory = $DIC["mail.mime.sender.factory"];
+        $sender        = $senderFactory->system();
+
         $mail = new ilMimeMail();
-        $mail->From($this->pl->getConfigObject()->getValue('email'));
+        $mail->From($sender);
         $mail->To($email_address);
         $mail->Subject($this->reminderTitle);
         $mail->Body($body);

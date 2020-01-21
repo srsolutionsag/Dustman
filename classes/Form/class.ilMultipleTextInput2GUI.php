@@ -6,177 +6,178 @@ require_once('./Services/Form/classes/class.ilSubEnabledFormPropertyGUI.php');
 
 /**
  * Class ilMultipleTextInput2GUI
- *
  * @author  Oskar Truffer <ot@studer-raimann.ch>
  * @version $Id:
  */
-class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI {
+class ilMultipleTextInput2GUI extends ilSubEnabledFormPropertyGUI
+{
 
-	/**
-	 * @var array
-	 */
-	protected $values;
-	/**
-	 * @var string
-	 */
-	protected $placeholder;
-	/**
-	 * @var bool
-	 */
-	protected $disableOldFields;
-	/**
-	 * @var ilDustmanPlugin
-	 */
-	protected $pl;
+    /**
+     * @var array
+     */
+    protected $values;
+    /**
+     * @var string
+     */
+    protected $placeholder;
+    /**
+     * @var bool
+     */
+    protected $disableOldFields;
+    /**
+     * @var ilDustmanPlugin
+     */
+    protected $pl;
 
+    /**
+     * @param string $title
+     * @param string $post_var
+     * @param        $placeholder
+     */
+    public function __construct($title, $post_var, $placeholder)
+    {
+        parent::__construct($title, $post_var);
+        $this->placeholder = $placeholder;
+        $this->pl          = new ilDustmanPlugin();
+    }
 
-	/**
-	 * @param string $title
-	 * @param string $post_var
-	 * @param        $placeholder
-	 */
-	public function __construct($title, $post_var, $placeholder) {
-		parent::__construct($title, $post_var);
-		$this->placeholder = $placeholder;
-		$this->pl = new ilDustmanPlugin();
-	}
+    /**
+     * @return string
+     */
+    public function getHtml()
+    {
+        $tpl = $this->pl->getTemplate("tpl.multiple_input.html");
+        $tpl = $this->buildHTML($tpl);
 
+        $this->checkInput();
 
-	/**
-	 * @return string
-	 */
-	public function getHtml() {
-		$tpl = $this->pl->getTemplate("tpl.multiple_input.html");
-		$tpl = $this->buildHTML($tpl);
+        return $tpl->get();
+    }
 
-		$this->checkInput();
+    /**
+     * @param $tpl ilTemplate
+     * @return ilTemplate
+     */
+    protected function buildHTML($tpl)
+    {
+        $tpl->setCurrentBlock("title");
+        $tpl->setVariable("CSS_PATH", $this->pl->getStyleSheetLocation("content.css"));
+        $tpl->setVariable("X_IMAGE_PATH", $this->pl->getImagePath("x_image.png"));
+        $tpl->setVariable("PLACEHOLDER", $this->placeholder);
+        $tpl->setVariable("POSTVAR", $this->getPostVar());
+        $tpl->setVariable("NEW_OPTION", $this->getPostVar());
+        $tpl->parseCurrentBlock();
 
-		return $tpl->get();
-	}
+        $tpl->touchBlock("lvo_options_start");
+        $tpl->setVariable("POSTVAR2", $this->getPostVar());
+        $new = 0;
+        foreach ($this->values as $id => $value) {
+            if ($value) {
+                $tpl->setCurrentBlock("lvo_option");
+                $tpl->setVariable("OPTION_ID", $this->getPostVar() . "[" . $id . "]");
+                $tpl->setVariable("NEW_OPTION", $new);
+                if (substr($id, 0, 3) == "new") {
+                    $new++;
+                }
+                $tpl->setVariable("OPTION_VALUE", $value);
+                $tpl->setVariable("OPTION_CLASS", "lvo_option");
+                $tpl->setVariable("PLACEHOLDER_CLASS", "");
+                $tpl->setVariable("PLACEHOLDER", "");
+                $tpl->setVariable("X_DISPLAY", "float");
+                $tpl->setVariable("DISABLED", "disabled");
+                $tpl->setVariable("X_IMAGE_PATH", $this->pl->getImagePath("x_image.png"));
+                $tpl->parseCurrentBlock();
+            }
+        }
 
+        $tpl->setCurrentBlock("lvo_option");
+        $tpl->setVariable("OPTION_ID", $this->getPostVar() . "[new" . $new . "]");
+        $tpl->setVariable("NEW_OPTION", $new);
+        $tpl->setVariable("OPTION_TITLE", "");
+        $tpl->setVariable("OPTION_CLASS", "lvo_new_option");
+        $tpl->setVariable("PLACEHOLDER", "placeholder = '" . $this->placeholder . "'");
+        $tpl->setVariable("PLACEHOLDER_CLASS", "placeholder");
+        $tpl->setVariable("X_IMAGE_PATH", $this->pl->getImagePath("x_image.png"));
+        $tpl->setVariable("X_DISPLAY", "none");
+        $tpl->parseCurrentBlock();
 
-	/**
-	 * @param $tpl ilTemplate
-	 *
-	 * @return ilTemplate
-	 */
-	protected function buildHTML($tpl) {
-		$tpl->setCurrentBlock("title");
-		$tpl->setVariable("CSS_PATH", $this->pl->getStyleSheetLocation("content.css"));
-		$tpl->setVariable("X_IMAGE_PATH", $this->pl->getImagePath("x_image.png"));
-		$tpl->setVariable("PLACEHOLDER", $this->placeholder);
-		$tpl->setVariable("POSTVAR", $this->getPostVar());
-		$tpl->setVariable("NEW_OPTION", $this->getPostVar());
-		$tpl->parseCurrentBlock();
+        $tpl->touchBlock("lvo_options_end");
 
-		$tpl->touchBlock("lvo_options_start");
-		$tpl->setVariable("POSTVAR2", $this->getPostVar());
-		$new = 0;
-		foreach ($this->values as $id => $value) {
-			if ($value) {
-				$tpl->setCurrentBlock("lvo_option");
-				$tpl->setVariable("OPTION_ID", $this->getPostVar() . "[" . $id . "]");
-				$tpl->setVariable("NEW_OPTION", $new);
-				if (substr($id, 0, 3) == "new") {
-					$new ++;
-				}
-				$tpl->setVariable("OPTION_VALUE", $value);
-				$tpl->setVariable("OPTION_CLASS", "lvo_option");
-				$tpl->setVariable("PLACEHOLDER_CLASS", "");
-				$tpl->setVariable("PLACEHOLDER", "");
-				$tpl->setVariable("X_DISPLAY", "float");
-				$tpl->setVariable("DISABLED", "disabled");
-				$tpl->setVariable("X_IMAGE_PATH", $this->pl->getImagePath("x_image.png"));
-				$tpl->parseCurrentBlock();
-			}
-		}
+        return $tpl;
+    }
 
-		$tpl->setCurrentBlock("lvo_option");
-		$tpl->setVariable("OPTION_ID", $this->getPostVar() . "[new" . $new . "]");
-		$tpl->setVariable("NEW_OPTION", $new);
-		$tpl->setVariable("OPTION_TITLE", "");
-		$tpl->setVariable("OPTION_CLASS", "lvo_new_option");
-		$tpl->setVariable("PLACEHOLDER", "placeholder = '" . $this->placeholder . "'");
-		$tpl->setVariable("PLACEHOLDER_CLASS", "placeholder");
-		$tpl->setVariable("X_IMAGE_PATH", $this->pl->getImagePath("x_image.png"));
-		$tpl->setVariable("X_DISPLAY", "none");
-		$tpl->parseCurrentBlock();
-
-		$tpl->touchBlock("lvo_options_end");
-
-		return $tpl;
-	}
-
-
-	/**
-	 * @param $value mixed
-	 */
-	function setValueByArray($value) {
-		$cleaned_values = array();
-        $_value = $value[$this->getPostVar()];
+    /**
+     * @param $value mixed
+     */
+    function setValueByArray($value)
+    {
+        $cleaned_values = array();
+        $_value         = $value[$this->getPostVar()];
         if (is_array($_value)) {
             foreach ($_value as $v) {
                 if ($v) {
                     $cleaned_values[] = $v;
                 }
             }
-        } else if ($_value) {
-            $cleaned_values[] = $_value;
+        } else {
+            if ($_value) {
+                $cleaned_values[] = $_value;
+            }
         }
 
-		foreach ($this->getSubItems() as $item) {
-			$item->setValueByArray($value);
-		}
+        foreach ($this->getSubItems() as $item) {
+            $item->setValueByArray($value);
+        }
         $this->values = $cleaned_values;
-	}
+    }
 
+    /**
+     * @param boolean $disableOldFields
+     */
+    public function setDisableOldFields($disableOldFields)
+    {
+        $this->disableOldFields = $disableOldFields;
+    }
 
-	/**
-	 * @param boolean $disableOldFields
-	 */
-	public function setDisableOldFields($disableOldFields) {
-		$this->disableOldFields = $disableOldFields;
-	}
+    /**
+     * @return boolean
+     */
+    public function getDisableOldFields()
+    {
+        return $this->disableOldFields;
+    }
 
+    /**
+     * @param $template ilTemplate
+     */
+    public function insert(&$template)
+    {
+        $template->setCurrentBlock("prop_custom");
+        $template->setVariable("CUSTOM_CONTENT", $this->getHtml());
+        $template->parseCurrentBlock();
+    }
 
-	/**
-	 * @return boolean
-	 */
-	public function getDisableOldFields() {
-		return $this->disableOldFields;
-	}
+    /**
+     * @return bool
+     */
+    public function checkInput()
+    {
+        return true;
+    }
 
+    /**
+     * @return array
+     */
+    public function getValues()
+    {
+        return $this->values;
+    }
 
-	/**
-	 * @param $template ilTemplate
-	 */
-	public function insert(&$template) {
-		$template->setCurrentBlock("prop_custom");
-		$template->setVariable("CUSTOM_CONTENT", $this->getHtml());
-		$template->parseCurrentBlock();
-	}
-
-
-	/**
-	 * @return bool
-	 */
-	public function checkInput() {
-		return true;
-	}
-
-
-	/**
-	 * @return array
-	 */
-	public function getValues() {
-		return $this->values;
-	}
-
-
-	/**
-	 * @return array
-	 */
-	public function getValue() {
-		return $this->values;
-	}
+    /**
+     * @return array
+     */
+    public function getValue()
+    {
+        return $this->values;
+    }
 }

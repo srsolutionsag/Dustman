@@ -5,83 +5,81 @@ require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classe
 
 /**
  * Class ilDustmanPlugin
- *
  * @author Oskar Truffer <ot@studer-raimann.ch>
  */
-class ilDustmanPlugin extends ilCronHookPlugin {
+class ilDustmanPlugin extends ilCronHookPlugin
+{
 
-	const PLUGIN_NAME = 'Dustman';
+    const PLUGIN_NAME = 'Dustman';
 
-	/**
-	 * @var  ilDustmanCron
-	 */
-	protected static $instance;
-	/**
-	 * @var  ilDustmanConfig
-	 */
-	protected $configObject;
+    /**
+     * @var  ilDustmanCron
+     */
+    protected static $instance;
+    /**
+     * @var  ilDustmanConfig
+     */
+    protected $configObject;
 
+    /**
+     * @return ilDustmanCron[]
+     */
+    public function getCronJobInstances()
+    {
+        $this->loadInstance();
 
-	/**
-	 * @return ilDustmanCron[]
-	 */
-	public function getCronJobInstances() {
-		$this->loadInstance();
+        return array(self::$instance);
+    }
 
-		return array( self::$instance );
-	}
+    /**
+     * @param $a_job_id
+     * @return \ilDustmanCron
+     */
+    public function getCronJobInstance($a_job_id)
+    {
+        if ($a_job_id == ilDustmanCron::DUSTMAN_ID) {
+            $this->loadInstance();
 
+            return self::$instance;
+        }
+    }
 
-	/**
-	 * @param $a_job_id
-	 * @return \ilDustmanCron
-	 */
-	public function getCronJobInstance($a_job_id) {
-		if ($a_job_id == ilDustmanCron::DUSTMAN_ID) {
-			$this->loadInstance();
+    /**
+     * Get Plugin Name. Must be same as in class name il<Name>Plugin
+     * and must correspond to plugins subdirectory name.
+     * Must be overwritten in plugin class of plugin
+     * (and should be made final)
+     * @return    string    Plugin Name
+     */
+    function getPluginName()
+    {
+        return self::PLUGIN_NAME;
+    }
 
-			return self::$instance;
-		}
-	}
+    protected function loadInstance()
+    {
+        if (self::$instance === null) {
+            self::$instance = new ilDustmanCron();
+        }
+    }
 
+    /**
+     * @return string
+     */
+    public function getConfigTableName()
+    {
+        return 'xdustman_config';
+    }
 
-	/**
-	 * Get Plugin Name. Must be same as in class name il<Name>Plugin
-	 * and must correspond to plugins subdirectory name.
-	 *
-	 * Must be overwritten in plugin class of plugin
-	 * (and should be made final)
-	 *
-	 * @return    string    Plugin Name
-	 */
-	function getPluginName() {
-		return self::PLUGIN_NAME;
-	}
+    /**
+     * @return ilDustmanConfig
+     */
+    public function getConfigObject()
+    {
+        if ($this->configObject === null) {
+            $this->configObject = new ilDustmanConfig($this->getConfigTableName());
+        }
 
-
-	protected function loadInstance() {
-		if (self::$instance === null) {
-			self::$instance = new ilDustmanCron();
-		}
-	}
-
-
-	/**
-	 * @return string
-	 */
-	public function getConfigTableName() {
-		return 'xdustman_config';
-	}
-
-
-	/**
-	 * @return ilDustmanConfig
-	 */
-	public function getConfigObject() {
-		if ($this->configObject === null) {
-			$this->configObject = new ilDustmanConfig($this->getConfigTableName());
-		}
-
-		return $this->configObject;
-	}
+        return $this->configObject;
+    }
 }

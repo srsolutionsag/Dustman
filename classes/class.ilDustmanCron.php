@@ -210,6 +210,11 @@ class ilDustmanCron extends ilCronJob
     {
         global $DIC;
 
+        if (!ilObjUser::_exists($user_id, false, 'usr')) {
+            // User no longer exists, no mail is sent.
+            return;
+        }
+
         $user          = new ilObjUser($user_id);
         $email_address = $user->getEmail();
         $link          = ilLink::_getStaticLink($object['ref_id'], $object['type']);

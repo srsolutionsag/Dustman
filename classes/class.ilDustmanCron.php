@@ -153,17 +153,17 @@ class ilDustmanCron extends ilCronJob
     public function run()
     {
         if ($this->isCheckDate()) {
-            $this->dic->logger()->root()->write('[Dustman] Today some objects get deleted!');
+            $this->dic->logger()->root()->info('[Dustman] Today some objects get deleted!');
             $this->deleteObjects();
         } else {
-            $this->dic->logger()->root()->write('[Dustman] Today is not a deletion day.');
+            $this->dic->logger()->root()->info('[Dustman] Today is not a deletion day.');
         }
 
         if ($this->isMailDate()) {
-            $this->dic->logger()->root()->write("[Dustman] In {$this->reminderBeforeDays} days some objects will be deleted. Dustman sends reminder E-Mails.");
+            $this->dic->logger()->root()->info("[Dustman] In {$this->reminderBeforeDays} days some objects will be deleted. Dustman sends reminder E-Mails.");
             $this->writeEmails();
         } else {
-            $this->dic->logger()->root()->write("[Dustman] Today plus {$this->reminderBeforeDays} days is not a deletion Day. Dustman does not send any emails.");
+            $this->dic->logger()->root()->info("[Dustman] Today plus {$this->reminderBeforeDays} days is not a deletion Day. Dustman does not send any emails.");
         }
 
         return new ilDustmanResult(ilDustmanResult::STATUS_OK, 'Cron job terminated successfully.');
@@ -188,10 +188,10 @@ class ilDustmanCron extends ilCronJob
     protected function deleteObject($object)
     {
         try {
-            $this->dic->logger()->root()->write('[Dustman] Deleting object: ' . implode(', ', $object));
+            $this->dic->logger()->root()->warning('[Dustman] Deleting object: ' . implode(', ', $object));
             ilRepUtil::deleteObjects(null, array($object['ref_id']));
         } catch (Exception $e) {
-            $this->dic->logger()->root()->write($e->getMessage() . $e->getTraceAsString());
+            $this->dic->logger()->root()->error($e->getMessage() . $e->getTraceAsString());
         }
     }
 
@@ -214,7 +214,7 @@ class ilDustmanCron extends ilCronJob
         $email_address = $user->getEmail();
         $link          = ilLink::_getStaticLink($object['ref_id'], $object['type']);
 
-        $this->dic->logger()->root()->write("[Dustman] Send Email to: " . $email_address);
+        $this->dic->logger()->root()->warning("[Dustman] Send Email to: " . $email_address);
 
         $objecttype = $object['type'] === 'crs' ? 'Kurs' : 'Gruppe';
         $body       = str_replace('[Objekttyp]', $objecttype, $this->reminderBody);

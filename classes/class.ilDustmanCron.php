@@ -210,7 +210,10 @@ class ilDustmanCron extends ilCronJob
     {
         global $DIC;
 
-        if (!ilObjUser::_exists($user_id, false, 'usr')) {
+        $q = "SELECT * FROM object_data JOIN usr_data ON usr_data.usr_id = object_data.obj_id WHERE obj_id = %s";
+        $r = $DIC->database()->queryF($q, ['integer'], [(int) $user_id]);
+        $d = $DIC->database()->fetchObject($r);
+        if (!isset($d->usr_id) || is_null($d->usr_id)) {
             // User no longer exists, no mail is sent.
             return;
         }

@@ -1,12 +1,5 @@
 <?php
 
-require_once './Services/Cron/classes/class.ilCronJob.php';
-require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/class.ilDustmanResult.php';
-require_once './Services/Mail/classes/class.ilMimeMail.php';
-require_once './Services/Link/classes/class.ilLink.php';
-require_once './Services/Repository/classes/class.ilRepUtil.php';
-require_once './Services/Membership/classes/class.ilParticipants.php';
-
 /**
  * Class ilDustmanCron
  * @author Oskar Truffer <ot@studer-raimann.ch>

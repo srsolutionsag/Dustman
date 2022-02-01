@@ -1,7 +1,5 @@
 <?php
 
-require_once './Services/Cron/classes/class.ilCronJobResult.php';
-
 /**
  * Class ilDustmanResult
  * @author Oskar Truffer <ot@studer-raimann.ch>

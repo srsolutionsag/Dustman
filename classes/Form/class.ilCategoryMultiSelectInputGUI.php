@@ -1,7 +1,5 @@
 <?php
 
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultiSelectSearchInputGUI.php');
-
 /**
  * Class ilCategoryMultiSelectInputGUI
  * @author Oskar Truffer <ot@studer-raimann.ch>

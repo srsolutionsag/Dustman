@@ -3,7 +3,6 @@
 /**
  * ilDustmanConfig
  * @author  Oskar Truffer <ot@studer-raimann.ch> *
- * @version $Id$
  */
 class ilDustmanConfig
 {

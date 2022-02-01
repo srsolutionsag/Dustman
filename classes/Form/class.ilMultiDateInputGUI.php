@@ -1,13 +1,8 @@
 <?php
-/* Copyright (c) 1998-2009 ILIAS open source, Extended GPL, see docs/LICENSE */
-
-require_once('./Services/Form/classes/class.ilCustomInputGUI.php');
-require_once('./Services/Form/classes/class.ilSubEnabledFormPropertyGUI.php');
 
 /**
  * Class ilMultiDateInputGUI
  * @author  Oskar Truffer <ot@studer-raimann.ch>
- * @version $Id:
  */
 class ilMultiDateInputGUI extends ilMultipleTextInput2GUI
 {

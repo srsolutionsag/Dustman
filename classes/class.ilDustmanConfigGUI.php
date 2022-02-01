@@ -1,17 +1,8 @@
 <?php
-require_once('./Services/Component/classes/class.ilPluginConfigGUI.php');
-require_once('class.ilDustmanConfig.php');
-require_once('class.ilDustmanPlugin.php');
-require_once('./Services/Component/classes/class.ilComponent.php');
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultiSelectSearchInputGUI.php');
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilCategoryMultiSelectInputGUI.php');
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultipleTextInput2GUI.php');
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultiDateInputGUI.php');
 
 /**
  * Dustman Configuration
  * @author  Oskar Truffer <ot@studer-raimann.ch>
- * @version $Id$
  */
 class ilDustmanConfigGUI extends ilPluginConfigGUI
 {
@@ -248,7 +239,7 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
     public function searchCategories()
     {
         global $ilDB;
-        /** @var ilDB $ilDB */
+        /** @var ilDBInterface $ilDB */
         $ilDB       = $ilDB;
         $term       = $ilDB->quote('%' . $_GET['term'] . '%', 'text');
         $page_limit = $ilDB->quote($_GET['page_limit'], 'integer');

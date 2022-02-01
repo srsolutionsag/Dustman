@@ -1,7 +1,4 @@
 <?php
-include_once("./Services/Cron/classes/class.ilCronHookPlugin.php");
-require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/class.ilDustmanConfig.php';
-require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/class.ilDustmanCron.php';
 
 /**
  * Class ilDustmanPlugin
@@ -9,8 +6,7 @@ require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classe
  */
 class ilDustmanPlugin extends ilCronHookPlugin
 {
-
-    const PLUGIN_NAME = 'Dustman';
+    public const PLUGIN_NAME = 'Dustman';
 
     /**
      * @var  ilDustmanCron
@@ -51,7 +47,7 @@ class ilDustmanPlugin extends ilCronHookPlugin
      * (and should be made final)
      * @return    string    Plugin Name
      */
-    function getPluginName()
+    public function getPluginName()
     {
         return self::PLUGIN_NAME;
     }

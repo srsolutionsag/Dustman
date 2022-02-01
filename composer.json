@@ -1,0 +1,19 @@
+{
+    "name": "srag/dustman",
+    "authors": [
+        {
+            "name": "Oskar Truffer",
+            "email": "ot@studer-raimann.ch"
+        }
+    ],
+    "autoload": {
+        "classmap": [
+            "classes/"
+        ]
+    },
+    "config": {
+        "classmap-authoritative": true,
+        "optimize-autoloader": true
+    },
+    "require": {}
+}

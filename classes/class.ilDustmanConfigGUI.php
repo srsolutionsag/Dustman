@@ -1,257 +1,148 @@
 <?php
 
+use ILIAS\DI\UIServices;
+use ILIAS\DI\HTTPServices;
+use ILIAS\Filesystem\Stream\Streams;
+use ILIAS\Data\DateFormat\FormatBuilder;
+
 /**
- * Dustman Configuration
+ * Dustman Configuration GUI
  * @author  Oskar Truffer <ot@studer-raimann.ch>
+ * @author  Thibeau Fuhrer <thibeau@sr.solutions>
  */
 class ilDustmanConfigGUI extends ilPluginConfigGUI
 {
-
     /**
-     * @var \ilDustmanConfig
+     * @var UIServices
      */
-    protected $object;
+    protected $ui;
     /**
-     * @var array
+     * @var ilDBInterface
      */
-    protected $fields = array();
+    protected $db;
     /**
-     * @var string
+     * @var ilCtrl
      */
-    protected $table_name = '';
+    protected $ctrl;
     /**
-     * @var  ilPropertyFormGUI
+     * @var HTTPServices
+     */
+    protected $http;
+    /**
+     * @var ilDustmanPlugin
+     */
+    protected $plugin;
+    /**
+     * @var ilDustmanConfigForm
      */
     protected $form;
 
     public function __construct()
     {
-        global $ilCtrl, $tpl, $ilTabs;
-        /**
-         * @var $ilCtrl ilCtrl
-         * @var $tpl    ilTemplate
-         * @var $ilTabs ilTabsGUI
-         */
-        $this->ctrl   = $ilCtrl;
-        $this->tpl    = $tpl;
-        $this->tabs   = $ilTabs;
-        $this->pl     = new ilDustmanPlugin();
-        $this->object = new ilDustmanConfig($this->pl->getConfigTableName());
+        global $DIC;
+
+        $this->ui = $DIC->ui();
+        $this->db = $DIC->database();
+        $this->ctrl = $DIC->ctrl();
+        $this->http = $DIC->http();
+        $this->plugin = new ilDustmanPlugin();
+        $this->form = $this->initConfigForm();
     }
 
     /**
-     * @return string
+     * @param string $cmd
+     * @return void
      */
-    public function getTableName()
-    {
-        return $this->table_name;
-    }
-
-    /**
-     * @return ilDustmanConfig
-     */
-    public function getObject()
-    {
-        return $this->object;
-    }
-
-    /**
-     * Handles all commmands, default is 'configure'
-     */
-    public function performCommand($cmd)
+    public function performCommand($cmd) : void
     {
         switch ($cmd) {
             case 'configure':
             case 'searchCategories':
             case 'save':
-            case 'svn':
                 $this->$cmd();
                 break;
+
+            default:
+                throw new LogicException(self::class . " does not implement command '$cmd'");
         }
     }
 
-    /**
-     * Configure screen
-     */
-    public function configure()
+    public function configure() : void
     {
-        $this->initConfigurationForm();
-        $this->setFormValues();
-        $this->tpl->setContent($this->form->getHTML());
+        $this->form->show();
     }
 
-    /**
-     * Save config
-     */
-    public function save()
+    public function save() : void
     {
-        global $tpl, $ilCtrl;
-        $this->initConfigurationForm();
-        $this->form->setValuesByPost();
-        if ($this->form->checkInput()) {
-            foreach ($this->getFields() as $key => $item) {
-                $this->object->setValue($key, $this->form->getInput($key));
-                if (is_array($item['subelements'])) {
-                    foreach ($item['subelements'] as $subkey => $subitem) {
-                        $this->object->setValue($key . '_' . $subkey, $this->form->getInput($key . '_' . $subkey));
-                    }
-                }
-            }
-            $this->saveAdditionalFields();
-            ilUtil::sendSuccess($this->pl->txt('conf_saved'), true);
-            $ilCtrl->redirect($this, 'configure');
-        } else {
-            $this->form->setValuesByPost();
-            $tpl->setContent($this->form->getHtml());
+        if ($this->form->save()) {
+            ilUtil::sendSuccess($this->plugin->txt('conf_saved'), true);
+            $this->ctrl->redirect($this, 'configure');
         }
-    }
 
-    protected function saveAdditionalFields()
-    {
-        $this->object->setValue('dont_delete_objects_in_category', implode(',', $this->form->getInput('dont_delete_objects_in_category')));
-
-        $keywords = $this->form->getItemByPostVar('keywords')->getValue();
-        $this->object->setValue('keywords', serialize(array_values($keywords)));
-
-        $checkdates = $this->form->getItemByPostVar('checkdates')->getValue();
-        $this->object->setValue('checkdates', serialize(array_values($checkdates)));
+        $this->form->show();
     }
 
     /**
-     * Set form values
+     * asynchronous method that delivers categories for a given
+     * term in their titles.
      */
-    protected function setFormValues()
+    protected function searchCategories() : void
     {
-        foreach ($this->getFields() as $key => $item) {
-            $values[$key] = $this->object->getValue($key);
-            if (is_array($item['subelements'])) {
-                foreach ($item['subelements'] as $subkey => $subitem) {
-                    $values[$key . '_' . $subkey] = $this->object->getValue($key . '_' . $subkey);
-                }
-            }
+        $body = $this->http->request()->getQueryParams();
+        $term = $body['term'] ?? '';
+        $term = $this->db->quote("%$term%", 'text');
+
+        $query = "
+            SELECT obj.obj_id, obj.title FROM object_data AS obj
+		        LEFT JOIN object_translation AS trans ON trans.obj_id = obj.obj_id
+		        WHERE obj.type = 'cat' and (obj.title LIKE $term OR trans.title LIKE $term)
+		";
+
+        $result = $this->db->fetchAll($this->db->query($query));
+        $matches = [];
+        foreach ($result as $row) {
+            $matches[] = [
+                'value' => $row['obj_id'],
+                'display' => $row['title'],
+                'searchBy' => $row['title'],
+            ];
         }
-        $this->setAdditionalFormValues($values);
-        $this->form->setValuesByArray($values);
-    }
 
-    protected function setAdditionalFormValues(&$values)
-    {
-        $values['dont_delete_objects_in_category'] = $this->object->getValue('dont_delete_objects_in_category');
-        $values['keywords']                        = unserialize($this->object->getValue('keywords'));
-        $values['checkdates']                      = unserialize($this->object->getValue('checkdates'));
-    }
-
-    /**
-     * @return ilPropertyFormGUI
-     */
-    protected function initConfigurationForm()
-    {
-        global $lng, $ilCtrl;
-        include_once('Services/Form/classes/class.ilPropertyFormGUI.php');
-        $this->form = new ilPropertyFormGUI();
-
-        $this->initCustomConfigForm($this->form);
-
-        foreach ($this->getFields() as $key => $item) {
-            $field = new $item['type']($this->pl->txt($key), $key);
-            if ($item['info']) {
-                $field->setInfo($this->pl->txt($key . '_info'));
-            }
-            if (is_array($item['subelements'])) {
-                foreach ($item['subelements'] as $subkey => $subitem) {
-                    $subfield = new $subitem['type']($this->pl->txt($key . '_' . $subkey), $key . '_' . $subkey);
-                    if ($subitem['info']) {
-                        $subfield->setInfo($this->pl->txt($key . '_info'));
-                    }
-                    $field->addSubItem($subfield);
-                }
-            }
-            $this->form->addItem($field);
-        }
-        $this->form->addCommandButton('save', $lng->txt('save'));
-        $this->form->setTitle($this->pl->txt('configuration'));
-        $this->form->setFormAction($ilCtrl->getFormAction($this));
-
-        return $this->form;
-    }
-
-    /**
-     * For additional form elements which are not easily configurable.
-     * @param ilPropertyFormGUI $form
-     */
-    protected function initCustomConfigForm(&$form)
-    {
-        $item = new ilCategoryMultiSelectInputGUI($this->pl->txt('dont_delete_objects_in_category'), 'dont_delete_objects_in_category');
-        $item->setAjaxLink($this->ctrl->getLinkTarget($this, 'searchCategories'));
-        $item->setMinimumInputLength(2);
-        $form->addItem($item);
-
-        $item = new ilMultipleTextInput2GUI($this->pl->txt('keywords'), 'keywords', $this->pl->txt('keyword'));
-        $form->addItem($item);
-
-        $item = new ilMultiDateInputGUI($this->pl->txt('checkdates'), 'checkdates', $this->pl->txt('checkdates'));
-        $form->addItem($item);
-    }
-
-    /**
-     * Return the configuration fields
-     * @return array
-     */
-    protected function getFields()
-    {
-        $this->fields = array(
-            'delete_groups'          => array(
-                'type' => 'ilCheckboxInputGUI',
-                'info' => false,
-            ),
-            'delete_courses'         => array(
-                'type' => 'ilCheckboxInputGUI',
-                'info' => false,
-            ),
-            'delete_objects_in_days' => array(
-                'type' => 'ilNumberInputGUI',
-                'info' => false,
-            ),
-            'reminder_in_days'       => array(
-                'type' => 'ilNumberInputGUI',
-                'info' => false,
-            ),
-            'reminder_title'         => array(
-                'type' => 'ilTextInputGUI',
-                'info' => false,
-            ),
-            'reminder_content'       => array(
-                'type' => 'ilTextAreaInputGUI',
-                'info' => true,
-            ),
-            'email'                  => array(
-                'type' => 'ilEmailInputGUI',
-                'info' => false,
-            ),
+        $this->http->saveResponse(
+            $this->http
+                ->response()
+                ->withBody(Streams::ofString(json_encode($matches)))
+                ->withHeader('Content-Type', 'application/json; charset=utf-8')
         );
 
-        return $this->fields;
+        $this->http->sendResponse();
+        $this->http->close();
     }
 
-    /**
-     * used for the ajax call from search categories.
-     */
-    public function searchCategories()
+    protected function initConfigForm() : ilDustmanConfigForm
     {
-        global $ilDB;
-        /** @var ilDBInterface $ilDB */
-        $ilDB       = $ilDB;
-        $term       = $ilDB->quote('%' . $_GET['term'] . '%', 'text');
-        $page_limit = $ilDB->quote($_GET['page_limit'], 'integer');
-        $query      = "SELECT obj.obj_id, obj.title FROM object_data obj
-		 LEFT JOIN object_translation trans ON trans.obj_id = obj.obj_id
-		 WHERE obj.type = 'cat' and (obj.title LIKE $term OR trans.title LIKE $term)";
-        $res        = $ilDB->query($query);
-        $result     = array();
-        while ($row = $ilDB->fetchAssoc($res)) {
-            $result[] = array("id" => $row['obj_id'], "text" => $row['title']);
-        }
-        echo json_encode($result);
-        exit;
+        return new ilDustmanConfigForm(
+            $this->plugin,
+            $this->ui->mainTemplate(),
+            $this->http->request(),
+            (new FormatBuilder())
+                ->day()
+                ->slash()
+                ->month()
+                ->get(),
+            $this->ui->factory()->input()->field(),
+            $this->ui->factory()->input()->container()->form(),
+            $this->ui->renderer(),
+            $this->ctrl->getFormActionByClass(
+                self::class,
+                'save'
+            ),
+            $this->ctrl->getLinkTargetByClass(
+                self::class,
+                'searchCategories',
+                "",
+                true
+            )
+        );
     }
 }

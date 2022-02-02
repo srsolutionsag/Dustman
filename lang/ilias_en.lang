@@ -8,6 +8,7 @@ reminder_content#:#E-Mail Content
 conf_saved#:#Configuration saved.
 configuration#:#Configuration
 keywords#:#Don't delete objects with these keywords
+keywords_info#:#When done typing a keyword, press enter to add it.
 keyword#:#Keyword
 checkdates#:#Delete Dates (DD/MM)
 only_ddmm_allowed#:#Please enter the dates in the format DD/MM. For Example: 15/03 or 01/01

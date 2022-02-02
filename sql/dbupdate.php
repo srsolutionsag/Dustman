@@ -1,7 +1,25 @@
 <#1>
 <?php
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/class.ilDustmanPlugin.php');
-$pl   = new ilDustmanPlugin();
-$conf = $pl->getConfigObject();
-$conf->initDB();
+// this step has been removed due to the migration to ActiveRecord.
+// Do not remove it though, otherwise update errors may occur.
+?>
+<#2>
+<?php
+/** @var $ilDB ilDBInterface */
+if (!$ilDB->tableExists('xdustman_config')) {
+    $ilDB->createTable('xdustman_config',
+        [
+            'config_key' => [
+                'type' => 'text',
+                'length' => 128,
+                'notnull' => true,
+            ],
+
+            'config_value' => [
+                'type' => 'clob',
+                'notnull' => false,
+            ],
+        ]
+    );
+}
 ?>

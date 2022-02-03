@@ -62,6 +62,22 @@ class ilDustmanConfig extends ActiveRecord
     public const CNF_FILTER_KEYWORDS    = 'keywords';
 
     /**
+     * @var string[] list of possible configurations.
+     */
+    public const CNF_IDENTIFIERS = [
+        self::CNF_DELETE_GROUPS,
+        self::CNF_DELETE_COURSES,
+        self::CNF_DELETE_IN_DAYS,
+        self::CNF_REMINDER_IN_DAYS,
+        self::CNF_REMINDER_TITLE,
+        self::CNF_REMINDER_CONTENT,
+        self::CNF_REMINDER_EMAIL,
+        self::CNF_FILTER_CATEGORIES,
+        self::CNF_FILTER_DATES,
+        self::CNF_FILTER_KEYWORDS,
+    ];
+
+    /**
      * @var string mysql datetime format
      */
     protected const MYSQL_DATETIME_FORMAT = 'Y-m-d';

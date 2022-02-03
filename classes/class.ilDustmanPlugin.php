@@ -1,81 +1,62 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
- * Class ilDustmanPlugin
  * @author Oskar Truffer <ot@studer-raimann.ch>
+ * @author Thibeau Fuhrer <thibeau@sr.solutions>
  */
 class ilDustmanPlugin extends ilCronHookPlugin
 {
+    /**
+     * @var string plugin id, similar to plugin.php.
+     */
+    public const PLUGIN_ID = 'dustman';
+
+    /**
+     * @var string plugin display-name.
+     */
     public const PLUGIN_NAME = 'Dustman';
-
-    /**
-     * @var  ilDustmanCron
-     */
-    protected static $instance;
-    /**
-     * @var  ilDustmanConfig
-     */
-    protected $configObject;
-
-    /**
-     * @return ilDustmanCron[]
-     */
-    public function getCronJobInstances()
-    {
-        $this->loadInstance();
-
-        return array(self::$instance);
-    }
-
-    /**
-     * @param $a_job_id
-     * @return \ilDustmanCron
-     */
-    public function getCronJobInstance($a_job_id)
-    {
-        if ($a_job_id == ilDustmanCron::DUSTMAN_ID) {
-            $this->loadInstance();
-
-            return self::$instance;
-        }
-    }
-
-    /**
-     * Get Plugin Name. Must be same as in class name il<Name>Plugin
-     * and must correspond to plugins subdirectory name.
-     * Must be overwritten in plugin class of plugin
-     * (and should be made final)
-     * @return    string    Plugin Name
-     */
-    public function getPluginName()
-    {
-        return self::PLUGIN_NAME;
-    }
-
-    protected function loadInstance()
-    {
-        if (self::$instance === null) {
-            self::$instance = new ilDustmanCron();
-        }
-    }
 
     /**
      * @return string
      */
-    public function getConfigTableName()
+    public function getPluginName() : string
     {
-        return 'xdustman_config';
+        return self::PLUGIN_NAME;
     }
 
     /**
-     * @return ilDustmanConfig
+     * @return ilCronJob[]
      */
-    public function getConfigObject()
+    public function getCronJobInstances() : array
     {
-        if ($this->configObject === null) {
-            $this->configObject = new ilDustmanConfig($this->getConfigTableName());
+        return [
+            $this->getRemovalCronJob(),
+        ];
+    }
+
+    /**
+     * @param string $a_job_id
+     * @return ilCronJob
+     */
+    public function getCronJobInstance($a_job_id) : ilCronJob
+    {
+        if (ilDustmanRemovalCronJob::JOB_ID === $a_job_id) {
+            return $this->getRemovalCronJob();
         }
 
-        return $this->configObject;
+        return new ilDustmanNullCronJob();
+    }
+
+    /**
+     * @return ilDustmanRemovalCronJob
+     */
+    protected function getRemovalCronJob() : ilDustmanRemovalCronJob
+    {
+        global $DIC;
+        return new ilDustmanRemovalCronJob(
+            $this,
+            new ilDustmanRepository($DIC->database()),
+            $DIC->logger()->root()
+        );
     }
 }

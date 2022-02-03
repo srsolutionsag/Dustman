@@ -1,9 +1,10 @@
-<?php
+<?php declare(strict_types=1);
 
 use ILIAS\DI\UIServices;
 use ILIAS\DI\HTTPServices;
 use ILIAS\Filesystem\Stream\Streams;
 use ILIAS\Data\DateFormat\FormatBuilder;
+use ILIAS\HTTP\Response\Sender\ResponseSendingException;
 
 /**
  * Dustman Configuration GUI
@@ -17,10 +18,6 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
      */
     protected $ui;
     /**
-     * @var ilDBInterface
-     */
-    protected $db;
-    /**
      * @var ilCtrl
      */
     protected $ctrl;
@@ -33,6 +30,10 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
      */
     protected $plugin;
     /**
+     * @var ilDustmanRepository
+     */
+    protected $repository;
+    /**
      * @var ilDustmanConfigForm
      */
     protected $form;
@@ -42,10 +43,18 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
         global $DIC;
 
         $this->ui = $DIC->ui();
-        $this->db = $DIC->database();
         $this->ctrl = $DIC->ctrl();
         $this->http = $DIC->http();
         $this->plugin = new ilDustmanPlugin();
+        $this->repository = new ilDustmanRepository($DIC->database());
+
+        // ilObjComponentSettingsGUI parameters must be kept alive
+        // in order for ajax-requests to work.
+        $this->ctrl->saveParameterByClass(
+            self::class,
+            ['cname', 'ctype', 'slot_id', 'pname']
+        );
+
         $this->form = $this->initConfigForm();
     }
 
@@ -83,35 +92,19 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
     }
 
     /**
-     * asynchronous method that delivers categories for a given
-     * term in their titles.
+     * @throws ResponseSendingException
      */
     protected function searchCategories() : void
     {
         $body = $this->http->request()->getQueryParams();
         $term = $body['term'] ?? '';
-        $term = $this->db->quote("%$term%", 'text');
-
-        $query = "
-            SELECT obj.obj_id, obj.title FROM object_data AS obj
-		        LEFT JOIN object_translation AS trans ON trans.obj_id = obj.obj_id
-		        WHERE obj.type = 'cat' and (obj.title LIKE $term OR trans.title LIKE $term)
-		";
-
-        $result = $this->db->fetchAll($this->db->query($query));
-        $matches = [];
-        foreach ($result as $row) {
-            $matches[] = [
-                'value' => $row['obj_id'],
-                'display' => $row['title'],
-                'searchBy' => $row['title'],
-            ];
-        }
 
         $this->http->saveResponse(
             $this->http
                 ->response()
-                ->withBody(Streams::ofString(json_encode($matches)))
+                ->withBody(Streams::ofString(json_encode(
+                    $this->repository->getCategoriesByTerm($term) ?? []
+                )))
                 ->withHeader('Content-Type', 'application/json; charset=utf-8')
         );
 
@@ -123,13 +116,10 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
     {
         return new ilDustmanConfigForm(
             $this->plugin,
+            $this->repository,
             $this->ui->mainTemplate(),
             $this->http->request(),
-            (new FormatBuilder())
-                ->day()
-                ->slash()
-                ->month()
-                ->get(),
+            (new FormatBuilder())->day()->slash()->month()->get(),
             $this->ui->factory()->input()->field(),
             $this->ui->factory()->input()->container()->form(),
             $this->ui->renderer(),

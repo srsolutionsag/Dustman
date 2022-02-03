@@ -1,149 +1,109 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
- * Class ilDustmanCron
  * @author Oskar Truffer <ot@studer-raimann.ch>
+ * @author Thibeau Fuhrer <thibeau@sr.solutions>
  */
-class ilDustmanCron extends ilCronJob
+class ilDustmanRemovalCronJob extends ilCronJob
 {
+    /**
+     * @var string cron job id.
+     */
+    public const JOB_ID = ilDustmanPlugin::PLUGIN_ID . '_removal_job';
 
-    const DUSTMAN_ID = 'xdust';
     /**
-     * @var  ilDustmanPlugin
+     * @var ilDustmanPlugin
      */
-    protected $pl;
+    protected $plugin;
     /**
-     * @var  int[]
+     * @var ilDustmanRepository
      */
-    protected $category_ids;
+    protected $repository;
     /**
-     * @var  string[]
+     * @var ilLogger
      */
-    protected $keywords;
+    protected $logger;
     /**
-     * @var  string[]
+     * @var array<string, mixed>
      */
-    protected $checkdates;
-    /**
-     * @var  bool
-     */
-    protected $deleteGroups;
-    /**
-     * @var  bool
-     */
-    protected $deleteCourses;
-    /**
-     * @var  int
-     */
-    protected $deleteAfterDays;
-    /**
-     * @var  int
-     */
-    protected $reminderBeforeDays;
-    /**
-     * @var  string
-     */
-    protected $reminderTitle;
-    /**
-     * @var  string
-     */
-    protected $reminderBody;
-    /**
-     * @var \ILIAS\DI\Container
-     */
-    private $dic;
+    protected $config;
 
-    public function __construct()
-    {
-        global $DIC;
-        $this->dic = $DIC;
-        $this->pl  = new ilDustmanPlugin();
-        $this->readConfig();
-    }
-
-    protected function readConfig()
-    {
-        $config = $this->pl->getConfigObject();
-
-        $this->category_ids = explode(',', $config->getValue('dont_delete_objects_in_category'));
-        /** @noinspection UnserializeExploitsInspection */
-        $this->keywords = unserialize($config->getValue('keywords'));
-        /** @noinspection UnserializeExploitsInspection */
-        $this->checkdates         = unserialize($config->getValue('checkdates'));
-        $this->deleteGroups       = (bool) $config->getValue('delete_groups');
-        $this->deleteCourses      = (bool) $config->getValue('delete_courses');
-        $this->deleteAfterDays    = (int) $config->getValue('delete_objects_in_days');
-        $this->reminderBeforeDays = (int) $config->getValue('reminder_in_days');
-        $this->reminderTitle      = $config->getValue('reminder_title');
-        $this->reminderBody       = $config->getValue('reminder_content');
+    /**
+     * @param ilDustmanPlugin     $plugin
+     * @param ilDustmanRepository $repository
+     * @param ilLogger            $logger
+     */
+    public function __construct(
+        ilDustmanPlugin $plugin,
+        ilDustmanRepository $repository,
+        ilLogger $logger
+    ) {
+        $this->plugin = $plugin;
+        $this->repository = $repository;
+        $this->logger = $logger;
+        $this->config = $this->loadConfig();
     }
 
     /**
-     * @return string
+     * @inheritDoc
      */
-    public function getTitle()
+    public function getTitle() : string
     {
         return ilDustmanPlugin::PLUGIN_NAME;
     }
 
     /**
-     * @return string
+     * @inheritDoc
      */
-    public function getDescription()
+    public function getDescription() : string
     {
         return '';
     }
 
     /**
-     * Get id
-     * @return string
+     * @inheritDoc
      */
-    public function getId()
+    public function getId() : string
     {
-        return self::DUSTMAN_ID;
+        return self::JOB_ID;
     }
 
     /**
-     * Is to be activated on "installation"
-     * @return boolean
+     * @inheritDoc
      */
-    public function hasAutoActivation()
+    public function hasAutoActivation() : bool
     {
         return true;
     }
 
     /**
-     * Can the schedule be configured?
-     * @return boolean
+     * @inheritDoc
      */
-    public function hasFlexibleSchedule()
+    public function hasFlexibleSchedule() : bool
     {
         return true;
     }
 
     /**
-     * Get schedule type
-     * @return int
+     * @inheritDoc
      */
-    public function getDefaultScheduleType()
+    public function getDefaultScheduleType() : int
     {
         return self::SCHEDULE_TYPE_DAILY;
     }
 
     /**
-     * Get schedule value
-     * @return int|array
+     * @inheritDoc
      */
-    function getDefaultScheduleValue()
+    public function getDefaultScheduleValue() : int
     {
         return 1;
     }
 
     /**
-     * Run job
-     * @return ilCronJobResult
+     * @inheritDoc
      */
-    public function run()
+    public function run() : ilCronJobResult
     {
         if ($this->isCheckDate()) {
             $this->dic->logger()->root()->info('[Dustman] Today some objects get deleted!');
@@ -159,8 +119,30 @@ class ilDustmanCron extends ilCronJob
             $this->dic->logger()->root()->info("[Dustman] Today plus {$this->reminderBeforeDays} days is not a deletion Day. Dustman does not send any emails.");
         }
 
-        return new ilDustmanResult(ilDustmanResult::STATUS_OK, 'Cron job terminated successfully.');
+        return new ilDustmanCronJobResult(ilDustmanCronJobResult::STATUS_OK, 'Cron job terminated successfully.');
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function loadConfig() : array
+    {
+        return [
+            ilDustmanConfig::CNF_DELETE_GROUPS => $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_GROUPS, false),
+            ilDustmanConfig::CNF_DELETE_COURSES => $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_COURSES, false),
+            ilDustmanConfig::CNF_DELETE_IN_DAYS => $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_IN_DAYS, 0),
+            ilDustmanConfig::CNF_REMINDER_IN_DAYS => $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_IN_DAYS, 0),
+            ilDustmanConfig::CNF_REMINDER_TITLE => $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_TITLE, null),
+            ilDustmanConfig::CNF_REMINDER_CONTENT => $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_CONTENT, null),
+            ilDustmanConfig::CNF_REMINDER_EMAIL => $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_EMAIL, null),
+            ilDustmanConfig::CNF_FILTER_CATEGORIES => $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_CONTENT, []),
+            ilDustmanConfig::CNF_FILTER_KEYWORDS => $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_CONTENT, []),
+            ilDustmanConfig::CNF_FILTER_DATES => $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_CONTENT, null),
+
+        ];
+    }
+
+
 
     protected function writeEmails()
     {

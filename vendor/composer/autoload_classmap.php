@@ -11,5 +11,6 @@ return array(
     'ilDustmanConfigGUI' => $baseDir . '/classes/class.ilDustmanConfigGUI.php',
     'ilDustmanCron' => $baseDir . '/classes/Cron/class.ilDustmanCron.php',
     'ilDustmanPlugin' => $baseDir . '/classes/class.ilDustmanPlugin.php',
+    'ilDustmanRepository' => $baseDir . '/classes/class.ilDustmanRepository.php',
     'ilDustmanResult' => $baseDir . '/classes/Cron/class.ilDustmanResult.php',
 );

@@ -17,6 +17,10 @@ class ilDustmanConfigForm
      */
     protected $plugin;
     /**
+     * @var ilDustmanRepository
+     */
+    protected $repository;
+    /**
      * @var ilGlobalTemplateInterface
      */
     protected $global_template;
@@ -55,6 +59,7 @@ class ilDustmanConfigForm
 
     public function __construct(
         ilDustmanPlugin $plugin,
+        ilDustmanRepository $repository,
         ilGlobalTemplateInterface $global_template,
         ServerRequestInterface $request,
         DateFormat $date_format,
@@ -65,6 +70,7 @@ class ilDustmanConfigForm
         string $ajax_source
     ) {
         $this->plugin = $plugin;
+        $this->repository = $repository;
         $this->global_template = $global_template;
         $this->renderer = $renderer;
         $this->request = $request;
@@ -95,7 +101,7 @@ class ilDustmanConfigForm
 
         try {
             foreach ($data as $key => $value) {
-                $this->getConfig($key)->setValue($value)->save();
+                $this->repository->getConfigByIdentifier($key)->setValue($value)->save();
             }
         } catch (arException $e) {
             return false;
@@ -116,7 +122,7 @@ class ilDustmanConfigForm
                     $this->plugin->txt(ilDustmanConfig::CNF_FILTER_CATEGORIES),
                     [] // no tags needed, as all tags are user-generated.
                 )->withValue(
-                    $this->getConfigValueOrDefault(ilDustmanConfig::CNF_FILTER_CATEGORIES, [])
+                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_FILTER_CATEGORIES, [])
                 )->withAdditionalOnLoadCode(
                     $this->getTagAjaxSearchClosure()
                 ),
@@ -126,7 +132,7 @@ class ilDustmanConfigForm
                     [], // no tags needed, as all tags are user-generated.
                     $this->plugin->txt('keywords_info')
                 )->withValue(
-                    $this->getConfigValueOrDefault(ilDustmanConfig::CNF_FILTER_KEYWORDS, [])
+                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_FILTER_KEYWORDS, [])
                 ),
 
                 ilDustmanConfig::CNF_FILTER_DATES => $this->field_factory->dateTime(
@@ -134,52 +140,53 @@ class ilDustmanConfigForm
                 )->withFormat(
                     $this->date_format
                 )->withValue(
-                    (null !== ($config = ilDustmanConfig::find(ilDustmanConfig::CNF_FILTER_DATES))) ?
-                        $config->getValue()->format($this->date_format->toString()) :
-                        null
+                    $this->repository->getDateTimeConfig(
+                        ilDustmanConfig::CNF_FILTER_DATES,
+                        $this->date_format->toString()
+                    )
                 ),
 
                 ilDustmanConfig::CNF_DELETE_COURSES => $this->field_factory->checkbox(
                     $this->plugin->txt(ilDustmanConfig::CNF_DELETE_COURSES)
                 )->withValue(
-                    $this->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_COURSES, false)
+                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_COURSES, false)
                 ),
 
                 ilDustmanConfig::CNF_DELETE_GROUPS => $this->field_factory->checkbox(
                     $this->plugin->txt(ilDustmanConfig::CNF_DELETE_GROUPS)
                 )->withValue(
-                    $this->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_GROUPS, false)
+                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_GROUPS, false)
                 ),
 
                 ilDustmanConfig::CNF_DELETE_IN_DAYS => $this->field_factory->numeric(
                     $this->plugin->txt(ilDustmanConfig::CNF_DELETE_IN_DAYS)
                 )->withValue(
-                    $this->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_IN_DAYS, null)
+                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_IN_DAYS, null)
                 ),
 
                 ilDustmanConfig::CNF_REMINDER_IN_DAYS => $this->field_factory->numeric(
                     $this->plugin->txt(ilDustmanConfig::CNF_REMINDER_IN_DAYS)
                 )->withValue(
-                    $this->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_IN_DAYS, null)
+                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_IN_DAYS, null)
                 ),
 
                 ilDustmanConfig::CNF_REMINDER_TITLE => $this->field_factory->text(
                     $this->plugin->txt(ilDustmanConfig::CNF_REMINDER_TITLE)
                 )->withValue(
-                    $this->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_TITLE, '')
+                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_TITLE, '')
                 ),
 
                 ilDustmanConfig::CNF_REMINDER_CONTENT => $this->field_factory->textarea(
                     $this->plugin->txt(ilDustmanConfig::CNF_REMINDER_CONTENT),
                     $this->plugin->txt('reminder_content_info')
                 )->withValue(
-                    $this->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_CONTENT, '')
+                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_CONTENT, '')
                 ),
 
                 ilDustmanConfig::CNF_REMINDER_EMAIL => $this->field_factory->text(
                     $this->plugin->txt(ilDustmanConfig::CNF_REMINDER_EMAIL)
                 )->withValue(
-                    $this->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_EMAIL, '')
+                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_EMAIL, '')
                 ),
             ]
         );
@@ -236,37 +243,5 @@ class ilDustmanConfigForm
                         });
             ";
         };
-    }
-
-    /**
-     * @param string $identifier
-     * @return ilDustmanConfig
-     * @throws arException
-     */
-    protected function getConfig(string $identifier)
-    {
-        $config = ilDustmanConfig::where([ilDustmanConfig::IDENTIFIER => $identifier], '=')->first();
-        if (null === $config) {
-            $config = new ilDustmanConfig();
-            $config->setIdentifier($identifier);
-        }
-
-        return $config;
-    }
-
-    /**
-     * @param string $identifier
-     * @param mixed  $default
-     * @return mixed
-     */
-    protected function getConfigValueOrDefault(string $identifier, $default)
-    {
-        /** @var $config ilDustmanConfig */
-        $config = ilDustmanConfig::find($identifier);
-        if (null !== $config) {
-            return $config->getValue();
-        }
-
-        return $default;
     }
 }

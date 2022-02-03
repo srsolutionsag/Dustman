@@ -10,9 +10,10 @@ class ComposerStaticInit34161b9ad583168d7b1d454b057eb2dc
         'ilDustmanConfig' => __DIR__ . '/../..' . '/classes/Config/class.ilDustmanConfig.php',
         'ilDustmanConfigForm' => __DIR__ . '/../..' . '/classes/Config/class.ilDustmanConfigForm.php',
         'ilDustmanConfigGUI' => __DIR__ . '/../..' . '/classes/class.ilDustmanConfigGUI.php',
-        'ilDustmanCron' => __DIR__ . '/../..' . '/classes/Cron/class.ilDustmanCron.php',
+        'ilDustmanCron' => __DIR__ . '/../..',
         'ilDustmanPlugin' => __DIR__ . '/../..' . '/classes/class.ilDustmanPlugin.php',
-        'ilDustmanResult' => __DIR__ . '/../..' . '/classes/Cron/class.ilDustmanResult.php',
+        'ilDustmanRepository' => __DIR__ . '/../..' . '/classes/class.ilDustmanRepository.php',
+        'ilDustmanResult' => __DIR__ . '/../..',
     );
 
     public static function getInitializer(ClassLoader $loader)

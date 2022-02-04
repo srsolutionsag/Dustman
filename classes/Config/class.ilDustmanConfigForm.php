@@ -285,10 +285,7 @@ class ilDustmanConfigForm
         return $this->refinery->custom()->constraint(
             static function (array $ref_ids) : bool {
                 foreach ($ref_ids as $ref_id) {
-                    if (!is_int($ref_id) ||
-                        !ilObject::_exists((int) $ref_id, true, 'cat') ||
-                        'cat' !== ilObject2::_lookupType((int) $ref_id, true)
-                    ) {
+                    if (!is_numeric($ref_id) || !ilObject2::_exists((int) $ref_id, true, 'cat')) {
                         return false;
                     }
                 }

@@ -1,4 +1,5 @@
 dont_delete_objects_in_category#:#Objekte innerhalb der folgenden Kategorien NICHT löschen
+dont_delete_objects_in_category_info#:#Nachdem Sie eine Ref-ID eingegeben haben, drücken Sie "Enter" um es hinzuzufügen.
 delete_groups#:#Lösche alte Gruppen
 delete_courses#:#Lösche alte Kurse
 delete_objects_in_days#:#Lösche Objekte, welche vor mehr als X Tagen angelegt wurden
@@ -11,7 +12,10 @@ keywords#:#Objekte mit folgenden Keywords NICHT löschen
 keywords_info#:#Nachdem Sie ein Schlüsselwort eingegeben haben, drücken Sie "Enter" um es hinzuzufügen.
 keyword#:#Schlüsselwort
 checkdates#:#Löschdaten (TT/MM)
+checkdates_info#:#Nachdem Sie ein Datum eingegeben haben, drücken Sie "Enter" um es hinzuzufügen.
 only_ddmm_allowed#:#Bitte beachten Sie das Format TT/MM. Zum Beispiel: 15/03 oder 01/01
 placeholder#:#Geben Sie den Namen der Kategorie an.
 reminder_content_info#:#Im Inhalt der Mail können Sie Platzhalter benutzen. Schreiben Sie [Titel] für den Titel des zu löschenden Objektes, [Link] für einen Link zum Kurs oder zur gruppe und [Objekttyp] um entweder 'Kurs' oder 'Gruppe' zu erhalten, entsprechend dem Typ des zu löschenden Objektes.
 email#:#Absender Email
+error_invalid_ref_id#:#Eine der gespeicherten Ref-ID's existiert nicht.
+error_invalid_date#:#Eine der gespeicherten Daten ist ungültig.

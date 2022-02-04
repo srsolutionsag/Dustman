@@ -8,6 +8,7 @@ use ILIAS\Data\DateFormat\DateFormat;
 use ILIAS\Refinery\Custom\Transformation;
 use ILIAS\Refinery\Factory as Refinery;
 use ILIAS\UI\Renderer;
+use ILIAS\Refinery\Constraint;
 
 /**
  * @author Thibeau Fuhrer <thibeau@sr.solutions>
@@ -95,11 +96,20 @@ class ilDustmanConfigForm
         $this->form = $this->build();
     }
 
-    public function show() : void
+    public function show(bool $show_errors = false) : void
     {
+        $form = ($show_errors) ?
+            $this->form->withRequest($this->request) :
+            $this->form;
+
         $this->global_template->setContent(
-            $this->renderer->render($this->form)
+            $this->renderer->render($form)
         );
+    }
+
+    public function valid() : bool
+    {
+        return null !== $this->form->withRequest($this->request)->getData();
     }
 
     /**
@@ -133,11 +143,14 @@ class ilDustmanConfigForm
             [
                 ilDustmanConfigAR::CNF_FILTER_CATEGORIES => $this->field_factory->tag(
                     $this->plugin->txt(ilDustmanConfigAR::CNF_FILTER_CATEGORIES),
-                    [] // no tags needed, as all tags are user-generated.
+                    [], // no tags needed, as all tags are user-generated.
+                    $this->plugin->txt('dont_delete_objects_in_category_info')
                 )->withValue(
                     $this->config->getFilterCategories()
                 )->withAdditionalOnLoadCode(
                     $this->getTagAjaxSearchClosure()
+                )->withAdditionalTransformation(
+                    $this->getCategoriesValidationConstraint()
                 ),
 
                 ilDustmanConfigAR::CNF_FILTER_KEYWORDS => $this->field_factory->tag(
@@ -150,11 +163,12 @@ class ilDustmanConfigForm
 
                 ilDustmanConfigAR::CNF_EXEC_ON_DATES => $this->field_factory->tag(
                     $this->plugin->txt(ilDustmanConfigAR::CNF_EXEC_ON_DATES),
-                    [] // no tags needed, as all tags are user-generated.
+                    [], // no tags needed, as all tags are user-generated.
+                    $this->plugin->txt('checkdates_info')
                 )->withValue(
                     $this->config->getExecDates()
                 )->withAdditionalTransformation(
-                    $this->getDateTimeValidationClosure()
+                    $this->getDateTimesValidationConstraint()
                 ),
 
                 ilDustmanConfigAR::CNF_DELETE_COURSES => $this->field_factory->checkbox(
@@ -208,77 +222,104 @@ class ilDustmanConfigForm
      */
     protected function getTagAjaxSearchClosure() : Closure
     {
+        // ILIAS 6 does not yet use the tagify library, without which
+        // the ajax auto-complete does not work.
+        if (version_compare(ILIAS_VERSION_NUMERIC, '7.0', '<')) {
+            return static function ($id) {
+            };
+        }
+
         return function ($id) {
             return "
-                        var {$id}_requests = [];
-                        let searchCategories = async function (event) {
-                            let tag = il.UI.Input.tagInput.getTagifyInstance('$id')
-                            let value = event.detail.value;
-                            
-                            // abort if value has not at least two characters.
-                            if (1 < value.length) { return; }
-                            
-                            // show the loading animation and hide the suggestions.
-                            tag.loading(true);
-                            tag.dropdown.hide();
-                            
-                            // kill the last request before starting a new one.
-                            if (0 < {$id}_requests.length) {
-                                for (let i = 0; i < {$id}_requests.length; i++) {
-                                    {$id}_requests[i].abort();
-                                }
-                            }
-                            
-                            // fetch suggestions asynchronously and store the
-                            // current request in the array.
-                            {$id}_requests.push($.ajax({
-                                type: 'GET',
-                                url: encodeURI('$this->ajax_source' + '&term=' + value),
-                                success: response => {
-                                    // update whitelist, hide loading animation and
-                                    // show the suggestions.
-                                    tag.settings.whitelist = response;
-                                    tag.loading(false);
-                                    tag.dropdown.show();
-                                },
-                            }));
+                var {$id}_requests = [];
+                let searchCategories = async function (event) {
+                    let tag = il.UI.Input.tagInput.getTagifyInstance('$id')
+                    let value = event.detail.value;
+
+                    // abort if value has not at least two characters.
+                    if (1 < value.length) { return; }
+
+                    // show the loading animation and hide the suggestions.
+                    tag.loading(true);
+                    tag.dropdown.hide();
+
+                    // kill the last request before starting a new one.
+                    if (0 < {$id}_requests.length) {
+                        for (let i = 0; i < {$id}_requests.length; i++) {
+                            {$id}_requests[i].abort();
                         }
-                    
-                        $(document).ready(function () {
-                            let tag = il.UI.Input.tagInput.getTagifyInstance('$id');
-                            
-                            // enforceWhitelist will make the whitelist persistent,
-                            // previously found objects will therefore stay in it. 
-                            tag.settings.enforceWhitelist = true;
-                            tag.on('input', searchCategories);
-                        });
+                    }
+
+                    // fetch suggestions asynchronously and store the
+                    // current request in the array.
+                    {$id}_requests.push($.ajax({
+                        type: 'GET',
+                        url: encodeURI('$this->ajax_source' + '&term=' + value),
+                        success: response => {
+                            // update whitelist, hide loading animation and
+                            // show the suggestions.
+                            tag.settings.whitelist = response;
+                            tag.loading(false);
+                            tag.dropdown.show();
+                        },
+                    }));
+                }
+
+                $(document).ready(function () {
+                    let tag = il.UI.Input.tagInput.getTagifyInstance('$id');
+
+                    // enforceWhitelist will make the whitelist persistent,
+                    // previously found objects will therefore stay in it. 
+                    tag.settings.enforceWhitelist = true;
+                    tag.on('input', searchCategories);
+                });
             ";
         };
     }
 
     /**
-     * @return Transformation
+     * @return Constraint
      */
-    protected function getDateTimeValidationClosure() : Transformation
+    protected function getCategoriesValidationConstraint() : Constraint
     {
-        return $this->refinery->custom()->transformation(
-            function ($dates) : ?array {
-                if (!is_array($dates)) {
-                    return null;
+        return $this->refinery->custom()->constraint(
+            static function (array $ref_ids) : bool {
+                foreach ($ref_ids as $ref_id) {
+                    if (!is_int($ref_id) ||
+                        !ilObject::_exists((int) $ref_id, true, 'cat') ||
+                        'cat' !== ilObject2::_lookupType((int) $ref_id, true)
+                    ) {
+                        return false;
+                    }
                 }
 
-                $valid_dates = [];
+                return true;
+            },
+            $this->plugin->txt('error_invalid_ref_id')
+        );
+    }
+
+    /**
+     * @return Constraint
+     */
+    protected function getDateTimesValidationConstraint() : Constraint
+    {
+        return $this->refinery->custom()->constraint(
+            function ($dates) : bool {
+                if (!is_array($dates)) {
+                    return true;
+                }
+
                 foreach ($dates as $date) {
                     $datetime = DateTimeImmutable::createFromFormat($this->date_format->toString(), $date);
                     if (false === $datetime) {
-                        return null;
+                        return false;
                     }
-
-                    $valid_dates[] = $datetime->format($this->date_format->toString());
                 }
 
-                return $valid_dates;
-            }
+                return true;
+            },
+            $this->plugin->txt('error_invalid_date')
         );
     }
 }

@@ -97,7 +97,9 @@ class ilDustmanRepository
      */
     public function filterObjectsWithinCategories(array $objects, array $categories) : array
     {
+        $categories = $this->determineActualCategoryRefIds($categories);
         $result = [];
+
         foreach ($objects as $object) {
             $object_node_path = $this->tree->getPathId($object['ref_id']);
             $object_contained = false;
@@ -150,17 +152,15 @@ class ilDustmanRepository
         return $config
             ->setDeleteGroups($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_DELETE_GROUPS, false))
             ->setDeleteCourses($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_DELETE_COURSES, false))
-            ->setReminderInterval($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_IN_DAYS, 0))
-            ->setReminderTitle($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_TITLE, null))
-            ->setReminderContent($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_CONTENT, null))
-            ->setReminderEmail($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_EMAIL, null))
+            ->setReminderInterval($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_IN_DAYS, null))
+            ->setReminderTitle($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_TITLE, ''))
+            ->setReminderContent($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_CONTENT, ''))
+            ->setReminderEmail($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_EMAIL, ''))
             ->setFilterKeywords($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_FILTER_KEYWORDS, []))
             ->setFilterCategories($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_FILTER_CATEGORIES, []))
-            ->setFilterOlderThan($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_FILTER_OLDER_THAN, 0))
+            ->setFilterOlderThan($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_FILTER_OLDER_THAN, null))
             ->setExecDates($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_EXEC_ON_DATES, []));
     }
-
-
 
     /**
      * @param string $identifier
@@ -205,5 +205,31 @@ class ilDustmanRepository
         }
 
         return $default;
+    }
+
+    /**
+     * for backwards compatibility this method finds obj_id's in an
+     * array of ref_id's and pushes all category references of found
+     * obj_id's to the given list of ids.
+     * @param array $ids
+     * @return array
+     */
+    protected function determineActualCategoryRefIds(array $ids) : array
+    {
+        $result = [];
+        foreach ($ids as $id) {
+            if (ilObject2::_exists($id, true, 'cat')) {
+                $result[] = $id;
+            } else {
+                $references = ilObject2::_getAllReferences($id);
+                foreach ($references as $ref_id) {
+                    if ('cat' === ilObject2::_lookupType($ref_id, true)) {
+                        $result[] = $ref_id;
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 }

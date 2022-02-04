@@ -42,7 +42,12 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
     {
         if (empty($this->config->getReminderContent())) {
             $this->logger->error('[Dustman] cannot send emails without content, please configure it.');
-            return new ilDustmanFailureResult();
+            return new ilDustmanSuccessResult();
+        }
+
+        if (empty($this->config->getReminderInterval())) {
+            $this->logger->error('[Dustman] cannot send emails without reminder interval, please configure it.');
+            return new ilDustmanSuccessResult();
         }
 
         $interval = $this->config->getReminderInterval();

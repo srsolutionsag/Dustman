@@ -1,266 +1,149 @@
-<?php
-require_once('./Services/Component/classes/class.ilPluginConfigGUI.php');
-require_once('class.ilDustmanConfig.php');
-require_once('class.ilDustmanPlugin.php');
-require_once('./Services/Component/classes/class.ilComponent.php');
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultiSelectSearchInputGUI.php');
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilCategoryMultiSelectInputGUI.php');
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultipleTextInput2GUI.php');
-require_once('./Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/Form/class.ilMultiDateInputGUI.php');
+<?php declare(strict_types=1);
+
+use ILIAS\DI\HTTPServices;
+use ILIAS\Filesystem\Stream\Streams;
+use ILIAS\Data\DateFormat\FormatBuilder;
+use ILIAS\HTTP\Response\Sender\ResponseSendingException;
 
 /**
- * Dustman Configuration
+ * Dustman Configuration GUI
  * @author  Oskar Truffer <ot@studer-raimann.ch>
- * @version $Id$
+ * @author  Thibeau Fuhrer <thibeau@sr.solutions>
  */
 class ilDustmanConfigGUI extends ilPluginConfigGUI
 {
-
     /**
-     * @var \ilDustmanConfig
+     * @var ilCtrl
      */
-    protected $object;
+    protected $ctrl;
     /**
-     * @var array
+     * @var HTTPServices
      */
-    protected $fields = array();
+    protected $http;
     /**
-     * @var string
+     * @var ilDustmanRepository
      */
-    protected $table_name = '';
+    protected $repository;
     /**
-     * @var  ilPropertyFormGUI
+     * @var ilDustmanConfigForm
      */
     protected $form;
 
     public function __construct()
     {
-        global $ilCtrl, $tpl, $ilTabs;
-        /**
-         * @var $ilCtrl ilCtrl
-         * @var $tpl    ilTemplate
-         * @var $ilTabs ilTabsGUI
-         */
-        $this->ctrl   = $ilCtrl;
-        $this->tpl    = $tpl;
-        $this->tabs   = $ilTabs;
-        $this->pl     = new ilDustmanPlugin();
-        $this->object = new ilDustmanConfig($this->pl->getConfigTableName());
+        global $DIC;
+
+        $this->ctrl = $DIC->ctrl();
+        $this->http = $DIC->http();
+        $this->plugin_object = new ilDustmanPlugin();
+        $this->repository = new ilDustmanRepository(
+            $DIC->database(),
+            $DIC->repositoryTree()
+        );
+
+        $this->keepComponentSettings();
+
+        $this->form = new ilDustmanConfigForm(
+            $this->plugin_object,
+            $this->repository,
+            $DIC->ui()->mainTemplate(),
+            $this->http->request(),
+            (new FormatBuilder())->day()->slash()->month()->get(),
+            $DIC->refinery(),
+            $DIC->ui()->factory()->input()->field(),
+            $DIC->ui()->factory()->input()->container()->form(),
+            $DIC->ui()->renderer(),
+            $this->getFormAction(),
+            $this->getAjaxSource()
+        );
     }
 
     /**
-     * @return string
+     * @param string $cmd
+     * @return void
      */
-    public function getTableName()
-    {
-        return $this->table_name;
-    }
-
-    /**
-     * @return ilDustmanConfig
-     */
-    public function getObject()
-    {
-        return $this->object;
-    }
-
-    /**
-     * Handles all commmands, default is 'configure'
-     */
-    public function performCommand($cmd)
+    public function performCommand($cmd) : void
     {
         switch ($cmd) {
             case 'configure':
             case 'searchCategories':
             case 'save':
-            case 'svn':
                 $this->$cmd();
                 break;
+
+            default:
+                throw new LogicException(self::class . " does not implement command '$cmd'");
         }
     }
 
-    /**
-     * Configure screen
-     */
-    public function configure()
+    protected function configure() : void
     {
-        $this->initConfigurationForm();
-        $this->setFormValues();
-        $this->tpl->setContent($this->form->getHTML());
+        $this->form->show();
     }
 
-    /**
-     * Save config
-     */
-    public function save()
+    protected function save() : void
     {
-        global $tpl, $ilCtrl;
-        $this->initConfigurationForm();
-        $this->form->setValuesByPost();
-        if ($this->form->checkInput()) {
-            foreach ($this->getFields() as $key => $item) {
-                $this->object->setValue($key, $this->form->getInput($key));
-                if (is_array($item['subelements'])) {
-                    foreach ($item['subelements'] as $subkey => $subitem) {
-                        $this->object->setValue($key . '_' . $subkey, $this->form->getInput($key . '_' . $subkey));
-                    }
-                }
-            }
-            $this->saveAdditionalFields();
-            ilUtil::sendSuccess($this->pl->txt('conf_saved'), true);
-            $ilCtrl->redirect($this, 'configure');
-        } else {
-            $this->form->setValuesByPost();
-            $tpl->setContent($this->form->getHtml());
+        if ($this->form->save()) {
+            ilUtil::sendSuccess($this->plugin_object->txt('conf_saved'), true);
+            $this->ctrl->redirectByClass(self::class, 'configure');
         }
-    }
 
-    protected function saveAdditionalFields()
-    {
-        $this->object->setValue('dont_delete_objects_in_category', implode(',', $this->form->getInput('dont_delete_objects_in_category')));
-
-        $keywords = $this->form->getItemByPostVar('keywords')->getValue();
-        $this->object->setValue('keywords', serialize(array_values($keywords)));
-
-        $checkdates = $this->form->getItemByPostVar('checkdates')->getValue();
-        $this->object->setValue('checkdates', serialize(array_values($checkdates)));
+        $this->form->show();
     }
 
     /**
-     * Set form values
+     * @throws ResponseSendingException
      */
-    protected function setFormValues()
+    protected function searchCategories() : void
     {
-        foreach ($this->getFields() as $key => $item) {
-            $values[$key] = $this->object->getValue($key);
-            if (is_array($item['subelements'])) {
-                foreach ($item['subelements'] as $subkey => $subitem) {
-                    $values[$key . '_' . $subkey] = $this->object->getValue($key . '_' . $subkey);
-                }
-            }
-        }
-        $this->setAdditionalFormValues($values);
-        $this->form->setValuesByArray($values);
-    }
+        $body = $this->http->request()->getQueryParams();
+        $term = $body['term'] ?? '';
 
-    protected function setAdditionalFormValues(&$values)
-    {
-        $values['dont_delete_objects_in_category'] = $this->object->getValue('dont_delete_objects_in_category');
-        $values['keywords']                        = unserialize($this->object->getValue('keywords'));
-        $values['checkdates']                      = unserialize($this->object->getValue('checkdates'));
-    }
-
-    /**
-     * @return ilPropertyFormGUI
-     */
-    protected function initConfigurationForm()
-    {
-        global $lng, $ilCtrl;
-        include_once('Services/Form/classes/class.ilPropertyFormGUI.php');
-        $this->form = new ilPropertyFormGUI();
-
-        $this->initCustomConfigForm($this->form);
-
-        foreach ($this->getFields() as $key => $item) {
-            $field = new $item['type']($this->pl->txt($key), $key);
-            if ($item['info']) {
-                $field->setInfo($this->pl->txt($key . '_info'));
-            }
-            if (is_array($item['subelements'])) {
-                foreach ($item['subelements'] as $subkey => $subitem) {
-                    $subfield = new $subitem['type']($this->pl->txt($key . '_' . $subkey), $key . '_' . $subkey);
-                    if ($subitem['info']) {
-                        $subfield->setInfo($this->pl->txt($key . '_info'));
-                    }
-                    $field->addSubItem($subfield);
-                }
-            }
-            $this->form->addItem($field);
-        }
-        $this->form->addCommandButton('save', $lng->txt('save'));
-        $this->form->setTitle($this->pl->txt('configuration'));
-        $this->form->setFormAction($ilCtrl->getFormAction($this));
-
-        return $this->form;
-    }
-
-    /**
-     * For additional form elements which are not easily configurable.
-     * @param ilPropertyFormGUI $form
-     */
-    protected function initCustomConfigForm(&$form)
-    {
-        $item = new ilCategoryMultiSelectInputGUI($this->pl->txt('dont_delete_objects_in_category'), 'dont_delete_objects_in_category');
-        $item->setAjaxLink($this->ctrl->getLinkTarget($this, 'searchCategories'));
-        $item->setMinimumInputLength(2);
-        $form->addItem($item);
-
-        $item = new ilMultipleTextInput2GUI($this->pl->txt('keywords'), 'keywords', $this->pl->txt('keyword'));
-        $form->addItem($item);
-
-        $item = new ilMultiDateInputGUI($this->pl->txt('checkdates'), 'checkdates', $this->pl->txt('checkdates'));
-        $form->addItem($item);
-    }
-
-    /**
-     * Return the configuration fields
-     * @return array
-     */
-    protected function getFields()
-    {
-        $this->fields = array(
-            'delete_groups'          => array(
-                'type' => 'ilCheckboxInputGUI',
-                'info' => false,
-            ),
-            'delete_courses'         => array(
-                'type' => 'ilCheckboxInputGUI',
-                'info' => false,
-            ),
-            'delete_objects_in_days' => array(
-                'type' => 'ilNumberInputGUI',
-                'info' => false,
-            ),
-            'reminder_in_days'       => array(
-                'type' => 'ilNumberInputGUI',
-                'info' => false,
-            ),
-            'reminder_title'         => array(
-                'type' => 'ilTextInputGUI',
-                'info' => false,
-            ),
-            'reminder_content'       => array(
-                'type' => 'ilTextAreaInputGUI',
-                'info' => true,
-            ),
-            'email'                  => array(
-                'type' => 'ilEmailInputGUI',
-                'info' => false,
-            ),
+        $this->http->saveResponse(
+            $this->http
+                ->response()
+                ->withBody(Streams::ofString(json_encode(
+                    $this->repository->getCategoriesByTerm($term) ?? []
+                )))
+                ->withHeader('Content-Type', 'application/json; charset=utf-8')
         );
 
-        return $this->fields;
+        $this->http->sendResponse();
+        $this->http->close();
     }
 
     /**
-     * used for the ajax call from search categories.
+     * in order to generate correct link targets the ilObjComponentSettingsGUI
+     * query parameters must be kept alive.
      */
-    public function searchCategories()
+    protected function keepComponentSettings() : void
     {
-        global $ilDB;
-        /** @var ilDB $ilDB */
-        $ilDB       = $ilDB;
-        $term       = $ilDB->quote('%' . $_GET['term'] . '%', 'text');
-        $page_limit = $ilDB->quote($_GET['page_limit'], 'integer');
-        $query      = "SELECT obj.obj_id, obj.title FROM object_data obj
-		 LEFT JOIN object_translation trans ON trans.obj_id = obj.obj_id
-		 WHERE obj.type = 'cat' and (obj.title LIKE $term OR trans.title LIKE $term)";
-        $res        = $ilDB->query($query);
-        $result     = array();
-        while ($row = $ilDB->fetchAssoc($res)) {
-            $result[] = array("id" => $row['obj_id'], "text" => $row['title']);
-        }
-        echo json_encode($result);
-        exit;
+        $this->ctrl->saveParameterByClass(
+            self::class,
+            [
+                'cname',
+                'ctype',
+                'slot_id',
+                'pname'
+            ]
+        );
+    }
+
+    protected function getAjaxSource() : string
+    {
+        return $this->ctrl->getLinkTargetByClass(
+            self::class,
+            'searchCategories',
+            "",
+            true
+        );
+    }
+
+    protected function getFormAction() : string
+    {
+        return $this->ctrl->getFormActionByClass(
+            self::class,
+            'save'
+        );
     }
 }

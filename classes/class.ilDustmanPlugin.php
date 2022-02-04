@@ -1,85 +1,100 @@
-<?php
-include_once("./Services/Cron/classes/class.ilCronHookPlugin.php");
-require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/class.ilDustmanConfig.php';
-require_once './Customizing/global/plugins/Services/Cron/CronHook/Dustman/classes/class.ilDustmanCron.php';
+<?php declare(strict_types=1);
 
 /**
- * Class ilDustmanPlugin
  * @author Oskar Truffer <ot@studer-raimann.ch>
+ * @author Thibeau Fuhrer <thibeau@sr.solutions>
  */
 class ilDustmanPlugin extends ilCronHookPlugin
 {
-
-    const PLUGIN_NAME = 'Dustman';
-
     /**
-     * @var  ilDustmanCron
+     * @var string plugin id, similar to plugin.php.
      */
-    protected static $instance;
-    /**
-     * @var  ilDustmanConfig
-     */
-    protected $configObject;
+    public const PLUGIN_ID = 'xdustman';
 
     /**
-     * @return ilDustmanCron[]
+     * @var string plugin display-name.
      */
-    public function getCronJobInstances()
+    public const PLUGIN_NAME = 'Dustman';
+
+    /**
+     * @var ilLogger
+     */
+    protected $logger;
+
+    /**
+     * @var ilDustmanRepository
+     */
+    protected $repository;
+
+    /**
+     * Safely initializes dependencies, as this class will also be
+     * loaded for CLI operations where they might not be available.
+     */
+    public function __construct()
     {
-        $this->loadInstance();
+        global $DIC;
 
-        return array(self::$instance);
-    }
+        parent::__construct();
 
-    /**
-     * @param $a_job_id
-     * @return \ilDustmanCron
-     */
-    public function getCronJobInstance($a_job_id)
-    {
-        if ($a_job_id == ilDustmanCron::DUSTMAN_ID) {
-            $this->loadInstance();
-
-            return self::$instance;
-        }
-    }
-
-    /**
-     * Get Plugin Name. Must be same as in class name il<Name>Plugin
-     * and must correspond to plugins subdirectory name.
-     * Must be overwritten in plugin class of plugin
-     * (and should be made final)
-     * @return    string    Plugin Name
-     */
-    function getPluginName()
-    {
-        return self::PLUGIN_NAME;
-    }
-
-    protected function loadInstance()
-    {
-        if (self::$instance === null) {
-            self::$instance = new ilDustmanCron();
+        if ($DIC->offsetExists('ilDB') &&
+            $DIC->offsetExists('ilLoggerFactory') &&
+            $DIC->offsetExists('tree')
+        ) {
+            $this->logger = $DIC->logger()->root();
+            $this->repository = new ilDustmanRepository(
+                $DIC->database(),
+                $DIC->repositoryTree()
+            );
         }
     }
 
     /**
      * @return string
      */
-    public function getConfigTableName()
+    public function getPluginName() : string
     {
-        return 'xdustman_config';
+        return self::PLUGIN_NAME;
     }
 
     /**
-     * @return ilDustmanConfig
+     * @return ilCronJob[]
      */
-    public function getConfigObject()
+    public function getCronJobInstances() : array
     {
-        if ($this->configObject === null) {
-            $this->configObject = new ilDustmanConfig($this->getConfigTableName());
-        }
+        return [
+            $this->loadJobInstance(ilDustmanRemovalJob::class),
+            $this->loadJobInstance(ilDustmanNotificationJob::class),
+        ];
+    }
 
-        return $this->configObject;
+    /**
+     * @param string $a_job_id
+     * @return ilCronJob
+     */
+    public function getCronJobInstance($a_job_id) : ilCronJob
+    {
+        switch ($a_job_id) {
+            case ilDustmanRemovalJob::JOB_ID:
+                return $this->loadJobInstance(ilDustmanRemovalJob::class);
+
+            case ilDustmanNotificationJob::JOB_ID:
+                return $this->loadJobInstance(ilDustmanNotificationJob::class);
+
+            default:
+                return new ilDustmanNullJob();
+        }
+    }
+
+    /**
+     * @param string $class_name
+     * @return ilCronJob
+     */
+    protected function loadJobInstance(string $class_name) : ilCronJob
+    {
+        return new $class_name(
+            $this,
+            $this->repository,
+            $this->logger
+        );
     }
 }

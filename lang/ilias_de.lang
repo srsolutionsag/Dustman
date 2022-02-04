@@ -8,6 +8,7 @@ reminder_content#:#Inhalt E-Mail
 conf_saved#:#Konfiguration gespeichert
 configuration#:#Konfiguration
 keywords#:#Objekte mit folgenden Keywords NICHT löschen
+keywords_info#:#Nachdem Sie ein Schlüsselwort eingegeben haben, drücken Sie "Enter" um es hinzuzufügen.
 keyword#:#Schlüsselwort
 checkdates#:#Löschdaten (TT/MM)
 only_ddmm_allowed#:#Bitte beachten Sie das Format TT/MM. Zum Beispiel: 15/03 oder 01/01

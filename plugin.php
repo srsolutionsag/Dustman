@@ -1,7 +1,11 @@
 <?php
-$id                = 'dustman';
-$version           = '1.3.1';
-$ilias_min_version = '5.3.0';
-$ilias_max_version = '6.999';
-$responsible       = 'studer + raimann ag';
-$responsible_mail  = 'support@studer-raimann.ch';
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+$id                 = 'xdustman';
+$version            = '2.0.0';
+$ilias_min_version  = '6.000';
+$ilias_max_version  = '7.999';
+$responsible        = 'sr solutions ag';
+$responsible_mail   = 'support@sr.solutions';
+$supports_cli_setup = true;

@@ -30,7 +30,7 @@
  *              ->setValue(mixed $value)
  *              ->store();
  */
-class ilDustmanConfig extends ActiveRecord
+class ilDustmanConfigAr extends ActiveRecord
 {
     /**
      * @var string table name for database representation.
@@ -103,10 +103,10 @@ class ilDustmanConfig extends ActiveRecord
 
     /**
      * @param string $config_key
-     * @return ilDustmanConfig
+     * @return ilDustmanConfigAr
      * @throws arException
      */
-    public function setIdentifier(string $config_key) : ilDustmanConfig
+    public function setIdentifier(string $config_key) : ilDustmanConfigAr
     {
         $this->validateIdentifier($config_key);
         $this->config_key = $config_key;
@@ -115,9 +115,9 @@ class ilDustmanConfig extends ActiveRecord
 
     /**
      * @param array|bool|string $value
-     * @return ilDustmanConfig
+     * @return ilDustmanConfigAr
      */
-    public function setValue($value) : ilDustmanConfig
+    public function setValue($value) : ilDustmanConfigAr
     {
         switch ($this->getIdentifier()) {
             case self::CNF_DELETE_COURSES:
@@ -141,6 +141,10 @@ class ilDustmanConfig extends ActiveRecord
             case self::CNF_FILTER_KEYWORDS:
             case self::CNF_FILTER_CATEGORIES:
                 return (array) $value;
+
+            case self::CNF_REMINDER_IN_DAYS:
+            case self::CNF_FILTER_OLDER_THAN:
+                return (int) $value;
 
             case self::CNF_DELETE_COURSES:
             case self::CNF_DELETE_GROUPS:

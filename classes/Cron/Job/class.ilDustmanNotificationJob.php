@@ -40,12 +40,12 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
      */
     public function run() : ilCronJobResult
     {
-        if (null === $this->config[ilDustmanConfig::CNF_REMINDER_CONTENT]) {
+        if (null === $this->config->getReminderContent()) {
             $this->logger->error('[Dustman] cannot send emails without content, please configure it.');
             return new ilDustmanFailureResult();
         }
 
-        $interval = $this->config[ilDustmanConfig::CNF_REMINDER_IN_DAYS];
+        $interval = $this->config->getReminderInterval();
         $datetime = (new DateTime())->add(new DateInterval("+ $interval days"));
 
         if ($this->isExecutionDay($datetime)) {
@@ -64,7 +64,10 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
             $object_admins = $this->repository->getAdminsByObjectRefId($object['ref_id']);
             foreach ($object_admins as $admin_id) {
                 $user = new ilObjUser($admin_id);
-                $this->logger->write('[Dustman] Writing email that obj ' . $object['title'] . " (" . $object['obj_id'] . ") will be deleted in {$this->config[ilDustmanConfig::CNF_REMINDER_IN_DAYS]} days.");
+                $this->logger->write(
+                    "[Dustman] Writing email that obj {$object['title']} ({$object['obj_id']}) 
+                    will be deleted in {$this->config->getReminderInterval()} days."
+                );
                 $this->writeEmail($user, $object);
             }
         }
@@ -81,7 +84,7 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
         $mail = new ilMimeMail();
         $mail->From($sender_system);
         $mail->To($user->getEmail());
-        $mail->Subject($this->config[ilDustmanConfig::CNF_REMINDER_TITLE] ?? 'Reminder');
+        $mail->Subject($this->config->getReminderTitle() ?? 'Reminder');
         $mail->Body($this->getEmailBody($object_data));
         $mail->Send();
     }
@@ -102,7 +105,7 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
                     $object_data['type']
                 ),
             ],
-            $this->config[ilDustmanConfig::CNF_REMINDER_CONTENT]
+            $this->config->getReminderContent() ?? ''
         );
     }
 }

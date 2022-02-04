@@ -137,6 +137,27 @@ class ilDustmanRepository
     }
 
     /**
+     * @return ilDustmanConfigDTO
+     */
+    public function getConfig() : ilDustmanConfigDTO
+    {
+        $config = new ilDustmanConfigDTO();
+        return $config
+            ->setDeleteGroups($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_DELETE_GROUPS, false))
+            ->setDeleteCourses($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_DELETE_COURSES, false))
+            ->setReminderInterval($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_REMINDER_IN_DAYS, 0))
+            ->setReminderTitle($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_REMINDER_TITLE, null))
+            ->setReminderContent($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_REMINDER_CONTENT, null))
+            ->setReminderEmail($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_REMINDER_EMAIL, null))
+            ->setFilterKeywords($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_FILTER_KEYWORDS, []))
+            ->setFilterCategories($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_FILTER_CATEGORIES, []))
+            ->setFilterOlderThan($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_FILTER_OLDER_THAN, 0))
+            ->setExecDates($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_EXEC_ON_DATES, []));
+    }
+
+
+
+    /**
      * @param string $identifier
      * @param string $format
      * @return string
@@ -150,15 +171,15 @@ class ilDustmanRepository
 
     /**
      * @param string $identifier
-     * @return ilDustmanConfig
+     * @return ilDustmanConfigAr
      * @throws arException
      */
-    public function getConfigByIdentifier(string $identifier) : ilDustmanConfig
+    public function getConfigByIdentifier(string $identifier) : ilDustmanConfigAr
     {
-        /** @var $config ilDustmanConfig */
-        $config = ilDustmanConfig::where([ilDustmanConfig::IDENTIFIER => $identifier], '=')->first();
+        /** @var $config ilDustmanConfigAr */
+        $config = ilDustmanConfigAr::where([ilDustmanConfigAr::IDENTIFIER => $identifier], '=')->first();
         if (null === $config) {
-            $config = new ilDustmanConfig();
+            $config = new ilDustmanConfigAr();
             $config->setIdentifier($identifier);
         }
 
@@ -172,8 +193,8 @@ class ilDustmanRepository
      */
     public function getConfigValueOrDefault(string $identifier, $default)
     {
-        /** @var $config ilDustmanConfig */
-        $config = ilDustmanConfig::find($identifier);
+        /** @var $config ilDustmanConfigAr */
+        $config = ilDustmanConfigAr::find($identifier);
         if (null !== $config) {
             return $config->getValue();
         }

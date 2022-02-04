@@ -35,6 +35,7 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
 
         $this->ctrl = $DIC->ctrl();
         $this->http = $DIC->http();
+        $this->plugin_object = new ilDustmanPlugin();
         $this->repository = new ilDustmanRepository(
             $DIC->database(),
             $DIC->repositoryTree()

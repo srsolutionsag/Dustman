@@ -98,13 +98,13 @@ class ilDustmanRemovalJob extends ilDustmanAbstractJob
     {
         $objects = $this->repository->getFilteredObjects(
             $this->getDeletableObjectTypes(),
-            $this->config[ilDustmanConfig::CNF_FILTER_KEYWORDS],
-            $this->config[ilDustmanConfig::CNF_FILTER_OLDER_THAN]
+            $this->config->getFilterKeywords(),
+            $this->config->getFilterOlderThan()
         );
 
         return $this->repository->filterObjectsWithinCategories(
             $objects,
-            $this->config[ilDustmanConfig::CNF_FILTER_CATEGORIES]
+            $this->config->getFilterCategories()
         );
     }
 
@@ -114,11 +114,11 @@ class ilDustmanRemovalJob extends ilDustmanAbstractJob
     protected function getDeletableObjectTypes() : array
     {
         $types = [];
-        if ($this->config[ilDustmanConfig::CNF_DELETE_COURSES]) {
+        if ($this->config->shouldDeleteCourses()) {
             $types[] = 'crs';
         }
 
-        if ($this->config[ilDustmanConfig::CNF_DELETE_GROUPS]) {
+        if ($this->config->shouldDeleteGroups()) {
             $types[] = 'grp';
         }
 

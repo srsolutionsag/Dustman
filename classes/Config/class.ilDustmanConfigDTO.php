@@ -20,25 +20,25 @@ class ilDustmanConfigDTO
      */
     protected $delete_courses = false;
     /**
-     * @var int
+     * @var int|null
      */
-    protected $reminder_interval = 0;
+    protected $reminder_interval = null;
     /**
      * @var string|null
      */
-    protected $reminder_title = null;
+    protected $reminder_title = '';
     /**
      * @var string|null
      */
-    protected $reminder_content = null;
+    protected $reminder_content = '';
     /**
      * @var string|null
      */
-    protected $reminder_email = null;
+    protected $reminder_email = '';
     /**
-     * @var int
+     * @var int|null
      */
-    protected $filter_older_than = 0;
+    protected $filter_older_than = null;
     /**
      * @var string[]
      */
@@ -103,18 +103,18 @@ class ilDustmanConfigDTO
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getReminderInterval() : int
+    public function getReminderInterval() : ?int
     {
         return $this->reminder_interval;
     }
 
     /**
-     * @param int $reminder_interval
+     * @param int|null $reminder_interval
      * @return ilDustmanConfigDTO
      */
-    public function setReminderInterval(int $reminder_interval) : ilDustmanConfigDTO
+    public function setReminderInterval(?int $reminder_interval) : ilDustmanConfigDTO
     {
         $this->reminder_interval = $reminder_interval;
         return $this;
@@ -175,18 +175,18 @@ class ilDustmanConfigDTO
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getFilterOlderThan() : int
+    public function getFilterOlderThan() : ?int
     {
         return $this->filter_older_than;
     }
 
     /**
-     * @param int $filter_older_than
+     * @param int|null $filter_older_than
      * @return ilDustmanConfigDTO
      */
-    public function setFilterOlderThan(int $filter_older_than) : ilDustmanConfigDTO
+    public function setFilterOlderThan(?int $filter_older_than) : ilDustmanConfigDTO
     {
         $this->filter_older_than = $filter_older_than;
         return $this;

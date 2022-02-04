@@ -1,4 +1,5 @@
 dont_delete_objects_in_category#:#Don't delete objects in these folders
+dont_delete_objects_in_category_info#:#When done typing a ref-id, press enter to add it.
 delete_groups#:#Delete old groups
 delete_courses#:#Delete old courses
 delete_objects_in_days#:#Delete Objects older than x days
@@ -11,7 +12,10 @@ keywords#:#Don't delete objects with these keywords
 keywords_info#:#When done typing a keyword, press enter to add it.
 keyword#:#Keyword
 checkdates#:#Delete Dates (DD/MM)
+checkdates_info#:#When done typing a date, press enter to add it.
 only_ddmm_allowed#:#Please enter the dates in the format DD/MM. For Example: 15/03 or 01/01
 placeholder#:#Enter the name of the category
 reminder_content_info#:#You can use placeholders in the E-Mail Content. Use [Titel] for the title of the object that will be deleted, [Link] for a link to the course or group and [Objekttyp] to get either 'Kurs' or 'Gruppe', depending on the type of the object that will be deleted.
 email#:#Sender E-Mail
+error_invalid_ref_id#:#Submitted ref-id does not exist.
+error_invalid_date#:#Submitted date is malformed.

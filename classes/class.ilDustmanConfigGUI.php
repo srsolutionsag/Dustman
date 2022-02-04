@@ -83,12 +83,12 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
 
     protected function save() : void
     {
-        if ($this->form->save()) {
+        if ($this->form->valid() && $this->form->save()) {
             ilUtil::sendSuccess($this->plugin_object->txt('conf_saved'), true);
             $this->ctrl->redirectByClass(self::class, 'configure');
         }
 
-        $this->form->show();
+        $this->form->show(true);
     }
 
     /**

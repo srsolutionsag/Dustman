@@ -67,7 +67,7 @@ class ilDustmanRemovalJob extends ilDustmanAbstractJob
         $objects = $this->repository->getFilteredObjects(
             $this->getDeletableObjectTypes(),
             $this->config->getFilterKeywords(),
-            $this->config->getFilterOlderThan()
+            $this->config->getFilterOlderThan() ?? 0
         );
 
         return $this->repository->filterObjectsWithinCategories(

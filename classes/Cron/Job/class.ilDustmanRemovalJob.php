@@ -38,38 +38,6 @@ class ilDustmanRemovalJob extends ilDustmanAbstractJob
     /**
      * @inheritDoc
      */
-    public function hasAutoActivation() : bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function hasFlexibleSchedule() : bool
-    {
-        return true;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getDefaultScheduleType() : int
-    {
-        return self::SCHEDULE_TYPE_DAILY;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getDefaultScheduleValue() : int
-    {
-        return 1;
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function run() : ilCronJobResult
     {
         if ($this->isExecutionDay(new DateTime())) {

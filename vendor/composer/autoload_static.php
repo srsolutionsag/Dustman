@@ -8,7 +8,7 @@ class ComposerStaticInit34161b9ad583168d7b1d454b057eb2dc
 {
     public static $classMap = array (
         'ilDustmanAbstractJob' => __DIR__ . '/../..' . '/classes/Cron/Job/class.ilDustmanAbstractJob.php',
-        'ilDustmanConfigAr' => __DIR__ . '/../..' . '/classes/Config/class.ilDustmanConfigAr.php',
+        'ilDustmanConfigAR' => __DIR__ . '/../..' . '/classes/Config/class.ilDustmanConfigAR.php',
         'ilDustmanConfigDTO' => __DIR__ . '/../..' . '/classes/Config/class.ilDustmanConfigDTO.php',
         'ilDustmanConfigForm' => __DIR__ . '/../..' . '/classes/Config/class.ilDustmanConfigForm.php',
         'ilDustmanConfigGUI' => __DIR__ . '/../..' . '/classes/class.ilDustmanConfigGUI.php',

@@ -131,8 +131,8 @@ class ilDustmanConfigForm
         return $this->form_factory->standard(
             $this->form_action,
             [
-                ilDustmanConfigAr::CNF_FILTER_CATEGORIES => $this->field_factory->tag(
-                    $this->plugin->txt(ilDustmanConfigAr::CNF_FILTER_CATEGORIES),
+                ilDustmanConfigAR::CNF_FILTER_CATEGORIES => $this->field_factory->tag(
+                    $this->plugin->txt(ilDustmanConfigAR::CNF_FILTER_CATEGORIES),
                     [] // no tags needed, as all tags are user-generated.
                 )->withValue(
                     $this->config->getFilterCategories()
@@ -140,16 +140,16 @@ class ilDustmanConfigForm
                     $this->getTagAjaxSearchClosure()
                 ),
 
-                ilDustmanConfigAr::CNF_FILTER_KEYWORDS => $this->field_factory->tag(
-                    $this->plugin->txt(ilDustmanConfigAr::CNF_FILTER_KEYWORDS),
+                ilDustmanConfigAR::CNF_FILTER_KEYWORDS => $this->field_factory->tag(
+                    $this->plugin->txt(ilDustmanConfigAR::CNF_FILTER_KEYWORDS),
                     [], // no tags needed, as all tags are user-generated.
                     $this->plugin->txt('keywords_info')
                 )->withValue(
                     $this->config->getFilterKeywords()
                 ),
 
-                ilDustmanConfigAr::CNF_EXEC_ON_DATES => $this->field_factory->tag(
-                    $this->plugin->txt(ilDustmanConfigAr::CNF_EXEC_ON_DATES),
+                ilDustmanConfigAR::CNF_EXEC_ON_DATES => $this->field_factory->tag(
+                    $this->plugin->txt(ilDustmanConfigAR::CNF_EXEC_ON_DATES),
                     [] // no tags needed, as all tags are user-generated.
                 )->withValue(
                     $this->config->getExecDates()
@@ -157,45 +157,45 @@ class ilDustmanConfigForm
                     $this->getDateTimeValidationClosure()
                 ),
 
-                ilDustmanConfigAr::CNF_DELETE_COURSES => $this->field_factory->checkbox(
-                    $this->plugin->txt(ilDustmanConfigAr::CNF_DELETE_COURSES)
+                ilDustmanConfigAR::CNF_DELETE_COURSES => $this->field_factory->checkbox(
+                    $this->plugin->txt(ilDustmanConfigAR::CNF_DELETE_COURSES)
                 )->withValue(
                     $this->config->shouldDeleteCourses()
                 ),
 
-                ilDustmanConfigAr::CNF_DELETE_GROUPS => $this->field_factory->checkbox(
-                    $this->plugin->txt(ilDustmanConfigAr::CNF_DELETE_GROUPS)
+                ilDustmanConfigAR::CNF_DELETE_GROUPS => $this->field_factory->checkbox(
+                    $this->plugin->txt(ilDustmanConfigAR::CNF_DELETE_GROUPS)
                 )->withValue(
                     $this->config->shouldDeleteGroups()
                 ),
 
-                ilDustmanConfigAr::CNF_FILTER_OLDER_THAN => $this->field_factory->numeric(
-                    $this->plugin->txt(ilDustmanConfigAr::CNF_FILTER_OLDER_THAN)
+                ilDustmanConfigAR::CNF_FILTER_OLDER_THAN => $this->field_factory->numeric(
+                    $this->plugin->txt(ilDustmanConfigAR::CNF_FILTER_OLDER_THAN)
                 )->withValue(
                     $this->config->getFilterOlderThan()
                 ),
 
-                ilDustmanConfigAr::CNF_REMINDER_IN_DAYS => $this->field_factory->numeric(
-                    $this->plugin->txt(ilDustmanConfigAr::CNF_REMINDER_IN_DAYS)
+                ilDustmanConfigAR::CNF_REMINDER_IN_DAYS => $this->field_factory->numeric(
+                    $this->plugin->txt(ilDustmanConfigAR::CNF_REMINDER_IN_DAYS)
                 )->withValue(
                     $this->config->getReminderInterval()
                 ),
 
-                ilDustmanConfigAr::CNF_REMINDER_TITLE => $this->field_factory->text(
-                    $this->plugin->txt(ilDustmanConfigAr::CNF_REMINDER_TITLE)
+                ilDustmanConfigAR::CNF_REMINDER_TITLE => $this->field_factory->text(
+                    $this->plugin->txt(ilDustmanConfigAR::CNF_REMINDER_TITLE)
                 )->withValue(
                     $this->config->getReminderTitle()
                 ),
 
-                ilDustmanConfigAr::CNF_REMINDER_CONTENT => $this->field_factory->textarea(
-                    $this->plugin->txt(ilDustmanConfigAr::CNF_REMINDER_CONTENT),
+                ilDustmanConfigAR::CNF_REMINDER_CONTENT => $this->field_factory->textarea(
+                    $this->plugin->txt(ilDustmanConfigAR::CNF_REMINDER_CONTENT),
                     $this->plugin->txt('reminder_content_info')
                 )->withValue(
                     $this->config->getReminderContent()
                 ),
 
-                ilDustmanConfigAr::CNF_REMINDER_EMAIL => $this->field_factory->text(
-                    $this->plugin->txt(ilDustmanConfigAr::CNF_REMINDER_EMAIL)
+                ilDustmanConfigAR::CNF_REMINDER_EMAIL => $this->field_factory->text(
+                    $this->plugin->txt(ilDustmanConfigAR::CNF_REMINDER_EMAIL)
                 )->withValue(
                     $this->config->getReminderEmail()
                 ),
@@ -216,7 +216,7 @@ class ilDustmanConfigForm
                             let value = event.detail.value;
                             
                             // abort if value has not at least two characters.
-                            if (2 <= value.length) { return; }
+                            if (1 < value.length) { return; }
                             
                             // show the loading animation and hide the suggestions.
                             tag.loading(true);

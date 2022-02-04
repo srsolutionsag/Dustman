@@ -7,7 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'ilDustmanAbstractJob' => $baseDir . '/classes/Cron/Job/class.ilDustmanAbstractJob.php',
-    'ilDustmanConfigAr' => $baseDir . '/classes/Config/class.ilDustmanConfigAr.php',
+    'ilDustmanConfigAR' => $baseDir . '/classes/Config/class.ilDustmanConfigAR.php',
     'ilDustmanConfigDTO' => $baseDir . '/classes/Config/class.ilDustmanConfigDTO.php',
     'ilDustmanConfigForm' => $baseDir . '/classes/Config/class.ilDustmanConfigForm.php',
     'ilDustmanConfigGUI' => $baseDir . '/classes/class.ilDustmanConfigGUI.php',

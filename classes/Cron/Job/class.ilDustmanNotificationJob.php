@@ -40,13 +40,16 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
      */
     public function run() : ilCronJobResult
     {
-        if (null === $this->config->getReminderContent()) {
+        if (empty($this->config->getReminderContent())) {
             $this->logger->error('[Dustman] cannot send emails without content, please configure it.');
             return new ilDustmanFailureResult();
         }
 
         $interval = $this->config->getReminderInterval();
-        $datetime = (new DateTime())->add(new DateInterval("+ $interval days"));
+        $datetime = (1 <= $interval) ?
+            (new DateTime())->add(new DateInterval("+ $interval days")) :
+            (new DateTime())
+        ;
 
         if ($this->isExecutionDay($datetime)) {
             $this->logger->info("[Dustman] In $interval days some objects will be deleted. Dustman sends reminder E-Mails.");
@@ -61,7 +64,7 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
     protected function sendEmails() : void
     {
         foreach ($this->getDeletableObjects() as $object) {
-            $object_admins = $this->repository->getAdminsByObjectRefId($object['ref_id']);
+            $object_admins = $this->repository->getAdminsByObjectRefId((int) $object['ref_id']);
             foreach ($object_admins as $admin_id) {
                 $user = new ilObjUser($admin_id);
                 $this->logger->write(

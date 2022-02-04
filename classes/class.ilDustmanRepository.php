@@ -33,15 +33,16 @@ class ilDustmanRepository
         $term  = htmlspecialchars($term);
         $term  = $this->db->quote("%$term%", 'text');
         $query = "
-            SELECT obj.obj_id, obj.title FROM object_data AS obj
+            SELECT ref.ref_id, obj.title FROM object_data AS obj
 		        LEFT JOIN object_translation AS trans ON trans.obj_id = obj.obj_id
+                LEFT JOIN object_reference AS ref ON ref.obj_id = obj.obj_id
 		        WHERE obj.type = 'cat' and (obj.title LIKE $term OR trans.title LIKE $term);
 		";
 
         $matches = [];
         foreach ($this->db->fetchAll($this->db->query($query)) as $entry) {
             $matches[] = [
-                'value' => $entry['obj_id'],
+                'value' => $entry['ref_id'],
                 'display' => $entry['title'],
                 'searchBy' => $entry['title'],
             ];
@@ -61,32 +62,35 @@ class ilDustmanRepository
         array $keywords,
         int $age_in_days
     ) : array {
-        $day_string  = $this->db->quote($age_in_days, 'integer');
         $type_string = $this->db->in('obj.type', $object_types, false, 'text');
         $key_string  = $this->db->in('il_meta_keyword.keyword', $keywords, false, 'text');
 
         $query = "
-		    SELECT obj.obj_id, obj.title, ref.ref_id, obj.type FROM object_data obj
-		        INNER JOIN object_reference ref ON ref.obj_id = obj.obj_id AND ref.deleted IS NULL
+		    SELECT obj.obj_id, obj.title, ref.ref_id, obj.type FROM object_data AS obj
+		        INNER JOIN object_reference AS ref 
+		            ON ref.obj_id = obj.obj_id 
+		            AND ref.deleted IS NULL
 		        WHERE
 				    $type_string
-			    AND obj.create_date < DATE_SUB(NOW(), INTERVAL $day_string DAY)
+			    AND obj.create_date < DATE_SUB(NOW(), INTERVAL $age_in_days DAY)
 			    AND NOT EXISTS (
-					SELECT * FROM il_meta_keyword WHERE il_meta_keyword.obj_id = obj.obj_id AND $key_string
-				)
-            ;
+					SELECT * FROM il_meta_keyword 
+					WHERE il_meta_keyword.obj_id = obj.obj_id 
+					AND $key_string
+				);
 		";
 
-        $result = [];
-        foreach ($this->db->fetchAssoc($this->db->query($query)) as $entry) {
-            $result[] = $entry;
+        $objects = [];
+        foreach ($this->db->fetchAll($this->db->query($query)) as $entry) {
+            $objects[] = $entry;
         }
 
-        return $result;
+        return $objects;
     }
 
     /**
-     * Filters an array of objects and removes them if they
+     * Filters an array of objects and removes them if they are
+     * contained in one of the given categories.
      * @param array<string, mixed> $objects
      * @param int[] $categories
      * @return array
@@ -95,16 +99,17 @@ class ilDustmanRepository
     {
         $result = [];
         foreach ($objects as $object) {
-            $node_path = $this->tree->getNodePath($object['ref_id']);
-            $contained = false;
+            $object_node_path = $this->tree->getPathId($object['ref_id']);
+            $object_contained = false;
+
             foreach ($categories as $category) {
-                if (!in_array($category['obj_id'], $node_path, true)) {
-                    $contained = true;
+                if (in_array($category, $object_node_path, true)) {
+                    $object_contained = true;
                     break;
                 }
             }
 
-            if (!$contained) {
+            if (!$object_contained) {
                 $result[] = $object;
             }
         }
@@ -143,16 +148,16 @@ class ilDustmanRepository
     {
         $config = new ilDustmanConfigDTO();
         return $config
-            ->setDeleteGroups($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_DELETE_GROUPS, false))
-            ->setDeleteCourses($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_DELETE_COURSES, false))
-            ->setReminderInterval($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_REMINDER_IN_DAYS, 0))
-            ->setReminderTitle($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_REMINDER_TITLE, null))
-            ->setReminderContent($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_REMINDER_CONTENT, null))
-            ->setReminderEmail($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_REMINDER_EMAIL, null))
-            ->setFilterKeywords($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_FILTER_KEYWORDS, []))
-            ->setFilterCategories($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_FILTER_CATEGORIES, []))
-            ->setFilterOlderThan($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_FILTER_OLDER_THAN, 0))
-            ->setExecDates($this->getConfigValueOrDefault(ilDustmanConfigAr::CNF_EXEC_ON_DATES, []));
+            ->setDeleteGroups($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_DELETE_GROUPS, false))
+            ->setDeleteCourses($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_DELETE_COURSES, false))
+            ->setReminderInterval($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_IN_DAYS, 0))
+            ->setReminderTitle($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_TITLE, null))
+            ->setReminderContent($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_CONTENT, null))
+            ->setReminderEmail($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_REMINDER_EMAIL, null))
+            ->setFilterKeywords($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_FILTER_KEYWORDS, []))
+            ->setFilterCategories($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_FILTER_CATEGORIES, []))
+            ->setFilterOlderThan($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_FILTER_OLDER_THAN, 0))
+            ->setExecDates($this->getConfigValueOrDefault(ilDustmanConfigAR::CNF_EXEC_ON_DATES, []));
     }
 
 
@@ -171,15 +176,15 @@ class ilDustmanRepository
 
     /**
      * @param string $identifier
-     * @return ilDustmanConfigAr
+     * @return ilDustmanConfigAR
      * @throws arException
      */
-    public function getConfigByIdentifier(string $identifier) : ilDustmanConfigAr
+    public function getConfigByIdentifier(string $identifier) : ilDustmanConfigAR
     {
-        /** @var $config ilDustmanConfigAr */
-        $config = ilDustmanConfigAr::where([ilDustmanConfigAr::IDENTIFIER => $identifier], '=')->first();
+        /** @var $config ilDustmanConfigAR */
+        $config = ilDustmanConfigAR::where([ilDustmanConfigAR::IDENTIFIER => $identifier], '=')->first();
         if (null === $config) {
-            $config = new ilDustmanConfigAr();
+            $config = new ilDustmanConfigAR();
             $config->setIdentifier($identifier);
         }
 
@@ -193,8 +198,8 @@ class ilDustmanRepository
      */
     public function getConfigValueOrDefault(string $identifier, $default)
     {
-        /** @var $config ilDustmanConfigAr */
-        $config = ilDustmanConfigAr::find($identifier);
+        /** @var $config ilDustmanConfigAR */
+        $config = ilDustmanConfigAR::find($identifier);
         if (null !== $config) {
             return $config->getValue();
         }

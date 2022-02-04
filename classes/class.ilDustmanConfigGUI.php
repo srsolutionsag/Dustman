@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 
-use ILIAS\DI\UIServices;
 use ILIAS\DI\HTTPServices;
 use ILIAS\Filesystem\Stream\Streams;
 use ILIAS\Data\DateFormat\FormatBuilder;
@@ -14,10 +13,6 @@ use ILIAS\HTTP\Response\Sender\ResponseSendingException;
 class ilDustmanConfigGUI extends ilPluginConfigGUI
 {
     /**
-     * @var UIServices
-     */
-    protected $ui;
-    /**
      * @var ilCtrl
      */
     protected $ctrl;
@@ -25,10 +20,6 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
      * @var HTTPServices
      */
     protected $http;
-    /**
-     * @var ilDustmanPlugin
-     */
-    protected $plugin;
     /**
      * @var ilDustmanRepository
      */
@@ -42,20 +33,28 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
     {
         global $DIC;
 
-        $this->ui = $DIC->ui();
         $this->ctrl = $DIC->ctrl();
         $this->http = $DIC->http();
-        $this->plugin = new ilDustmanPlugin();
-        $this->repository = new ilDustmanRepository($DIC->database());
-
-        // ilObjComponentSettingsGUI parameters must be kept alive
-        // in order for ajax-requests to work.
-        $this->ctrl->saveParameterByClass(
-            self::class,
-            ['cname', 'ctype', 'slot_id', 'pname']
+        $this->repository = new ilDustmanRepository(
+            $DIC->database(),
+            $DIC->repositoryTree()
         );
 
-        $this->form = $this->initConfigForm();
+        $this->keepComponentSettings();
+
+        $this->form = new ilDustmanConfigForm(
+            $this->plugin_object,
+            $this->repository,
+            $DIC->ui()->mainTemplate(),
+            $this->http->request(),
+            (new FormatBuilder())->day()->slash()->month()->get(),
+            $DIC->refinery(),
+            $DIC->ui()->factory()->input()->field(),
+            $DIC->ui()->factory()->input()->container()->form(),
+            $DIC->ui()->renderer(),
+            $this->getFormAction(),
+            $this->getAjaxSource()
+        );
     }
 
     /**
@@ -76,16 +75,16 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
         }
     }
 
-    public function configure() : void
+    protected function configure() : void
     {
         $this->form->show();
     }
 
-    public function save() : void
+    protected function save() : void
     {
         if ($this->form->save()) {
-            ilUtil::sendSuccess($this->plugin->txt('conf_saved'), true);
-            $this->ctrl->redirect($this, 'configure');
+            ilUtil::sendSuccess($this->plugin_object->txt('conf_saved'), true);
+            $this->ctrl->redirectByClass(self::class, 'configure');
         }
 
         $this->form->show();
@@ -112,27 +111,38 @@ class ilDustmanConfigGUI extends ilPluginConfigGUI
         $this->http->close();
     }
 
-    protected function initConfigForm() : ilDustmanConfigForm
+    /**
+     * in order to generate correct link targets the ilObjComponentSettingsGUI
+     * query parameters must be kept alive.
+     */
+    protected function keepComponentSettings() : void
     {
-        return new ilDustmanConfigForm(
-            $this->plugin,
-            $this->repository,
-            $this->ui->mainTemplate(),
-            $this->http->request(),
-            (new FormatBuilder())->day()->slash()->month()->get(),
-            $this->ui->factory()->input()->field(),
-            $this->ui->factory()->input()->container()->form(),
-            $this->ui->renderer(),
-            $this->ctrl->getFormActionByClass(
-                self::class,
-                'save'
-            ),
-            $this->ctrl->getLinkTargetByClass(
-                self::class,
-                'searchCategories',
-                "",
-                true
-            )
+        $this->ctrl->saveParameterByClass(
+            self::class,
+            [
+                'cname',
+                'ctype',
+                'slot_id',
+                'pname'
+            ]
+        );
+    }
+
+    protected function getAjaxSource() : string
+    {
+        return $this->ctrl->getLinkTargetByClass(
+            self::class,
+            'searchCategories',
+            "",
+            true
+        );
+    }
+
+    protected function getFormAction() : string
+    {
+        return $this->ctrl->getFormActionByClass(
+            self::class,
+            'save'
         );
     }
 }

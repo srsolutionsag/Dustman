@@ -6,11 +6,15 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'ilDustmanAbstractJob' => $baseDir . '/classes/Cron/Job/class.ilDustmanAbstractJob.php',
     'ilDustmanConfig' => $baseDir . '/classes/Config/class.ilDustmanConfig.php',
     'ilDustmanConfigForm' => $baseDir . '/classes/Config/class.ilDustmanConfigForm.php',
     'ilDustmanConfigGUI' => $baseDir . '/classes/class.ilDustmanConfigGUI.php',
-    'ilDustmanCron' => $baseDir . '/classes/Cron/class.ilDustmanCron.php',
+    'ilDustmanFailureResult' => $baseDir . '/classes/Cron/Result/class.ilDustmanFailureResult.php',
+    'ilDustmanNotificationJob' => $baseDir . '/classes/Cron/Job/class.ilDustmanNotificationJob.php',
+    'ilDustmanNullJob' => $baseDir . '/classes/Cron/Job/class.ilDustmanNullJob.php',
     'ilDustmanPlugin' => $baseDir . '/classes/class.ilDustmanPlugin.php',
+    'ilDustmanRemovalJob' => $baseDir . '/classes/Cron/Job/class.ilDustmanRemovalJob.php',
     'ilDustmanRepository' => $baseDir . '/classes/class.ilDustmanRepository.php',
-    'ilDustmanResult' => $baseDir . '/classes/Cron/class.ilDustmanResult.php',
+    'ilDustmanSuccessResult' => $baseDir . '/classes/Cron/Result/class.ilDustmanSuccessResult.php',
 );

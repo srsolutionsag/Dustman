@@ -5,6 +5,8 @@ use ILIAS\UI\Implementation\Component\Input\Field\Factory as FieldFactory;
 use ILIAS\UI\Implementation\Component\Input\Container\Form\Factory as FormFactory;
 use ILIAS\UI\Component\Input\Container\Form\Form;
 use ILIAS\Data\DateFormat\DateFormat;
+use ILIAS\Refinery\Custom\Transformation;
+use ILIAS\Refinery\Factory as Refinery;
 use ILIAS\UI\Renderer;
 
 /**
@@ -37,6 +39,10 @@ class ilDustmanConfigForm
      */
     protected $date_format;
     /**
+     * @var Refinery
+     */
+    protected $refinery;
+    /**
      * @var FieldFactory
      */
     protected $field_factory;
@@ -63,6 +69,7 @@ class ilDustmanConfigForm
         ilGlobalTemplateInterface $global_template,
         ServerRequestInterface $request,
         DateFormat $date_format,
+        Refinery $refinery,
         FieldFactory $field_factory,
         FormFactory $form_factory,
         Renderer $renderer,
@@ -75,6 +82,7 @@ class ilDustmanConfigForm
         $this->renderer = $renderer;
         $this->request = $request;
         $this->date_format = $date_format;
+        $this->refinery = $refinery;
         $this->field_factory = $field_factory;
         $this->form_factory = $form_factory;
         $this->form_action = $form_action;
@@ -122,7 +130,7 @@ class ilDustmanConfigForm
                     $this->plugin->txt(ilDustmanConfig::CNF_FILTER_CATEGORIES),
                     [] // no tags needed, as all tags are user-generated.
                 )->withValue(
-                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_FILTER_CATEGORIES, [])
+                    $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_FILTER_CATEGORIES, [])
                 )->withAdditionalOnLoadCode(
                     $this->getTagAjaxSearchClosure()
                 ),
@@ -132,61 +140,59 @@ class ilDustmanConfigForm
                     [], // no tags needed, as all tags are user-generated.
                     $this->plugin->txt('keywords_info')
                 )->withValue(
-                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_FILTER_KEYWORDS, [])
+                    $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_FILTER_KEYWORDS, [])
                 ),
 
-                ilDustmanConfig::CNF_FILTER_DATES => $this->field_factory->dateTime(
-                    $this->plugin->txt(ilDustmanConfig::CNF_FILTER_DATES)
-                )->withFormat(
-                    $this->date_format
+                ilDustmanConfig::CNF_EXEC_ON_DATES => $this->field_factory->tag(
+                    $this->plugin->txt(ilDustmanConfig::CNF_EXEC_ON_DATES),
+                    [] // no tags needed, as all tags are user-generated.
                 )->withValue(
-                    $this->repository->getDateTimeConfig(
-                        ilDustmanConfig::CNF_FILTER_DATES,
-                        $this->date_format->toString()
-                    )
+                    $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_EXEC_ON_DATES, [])
+                )->withAdditionalTransformation(
+                    $this->getDateTimeValidationClosure()
                 ),
 
                 ilDustmanConfig::CNF_DELETE_COURSES => $this->field_factory->checkbox(
                     $this->plugin->txt(ilDustmanConfig::CNF_DELETE_COURSES)
                 )->withValue(
-                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_COURSES, false)
+                    $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_COURSES, false)
                 ),
 
                 ilDustmanConfig::CNF_DELETE_GROUPS => $this->field_factory->checkbox(
                     $this->plugin->txt(ilDustmanConfig::CNF_DELETE_GROUPS)
                 )->withValue(
-                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_GROUPS, false)
+                    $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_GROUPS, false)
                 ),
 
-                ilDustmanConfig::CNF_DELETE_IN_DAYS => $this->field_factory->numeric(
-                    $this->plugin->txt(ilDustmanConfig::CNF_DELETE_IN_DAYS)
+                ilDustmanConfig::CNF_FILTER_OLDER_THAN => $this->field_factory->numeric(
+                    $this->plugin->txt(ilDustmanConfig::CNF_FILTER_OLDER_THAN)
                 )->withValue(
-                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_DELETE_IN_DAYS, null)
+                    $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_FILTER_OLDER_THAN, null)
                 ),
 
                 ilDustmanConfig::CNF_REMINDER_IN_DAYS => $this->field_factory->numeric(
                     $this->plugin->txt(ilDustmanConfig::CNF_REMINDER_IN_DAYS)
                 )->withValue(
-                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_IN_DAYS, null)
+                    $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_IN_DAYS, null)
                 ),
 
                 ilDustmanConfig::CNF_REMINDER_TITLE => $this->field_factory->text(
                     $this->plugin->txt(ilDustmanConfig::CNF_REMINDER_TITLE)
                 )->withValue(
-                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_TITLE, '')
+                    $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_TITLE, '')
                 ),
 
                 ilDustmanConfig::CNF_REMINDER_CONTENT => $this->field_factory->textarea(
                     $this->plugin->txt(ilDustmanConfig::CNF_REMINDER_CONTENT),
                     $this->plugin->txt('reminder_content_info')
                 )->withValue(
-                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_CONTENT, '')
+                    $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_CONTENT, '')
                 ),
 
                 ilDustmanConfig::CNF_REMINDER_EMAIL => $this->field_factory->text(
                     $this->plugin->txt(ilDustmanConfig::CNF_REMINDER_EMAIL)
                 )->withValue(
-                   $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_EMAIL, '')
+                    $this->repository->getConfigValueOrDefault(ilDustmanConfig::CNF_REMINDER_EMAIL, '')
                 ),
             ]
         );
@@ -243,5 +249,22 @@ class ilDustmanConfigForm
                         });
             ";
         };
+    }
+
+    /**
+     * @return Transformation
+     */
+    protected function getDateTimeValidationClosure() : Transformation
+    {
+        return $this->refinery->custom()->transformation(
+            function ($date) : ?string {
+                $datetime = DateTimeImmutable::createFromFormat($this->date_format->toString(), $date);
+                if (false !== $datetime) {
+                    return $datetime->format($this->date_format->toString());
+                }
+
+                return null;
+            }
+        );
     }
 }

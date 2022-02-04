@@ -3,19 +3,14 @@
 /**
  * @author Thibeau Fuhrer <thibeau@sr.solutions>
  */
-class ilDustmanNullCronJob extends ilCronJob
+class ilDustmanNullJob extends ilCronJob
 {
-    /**
-     * @var string cron job id.
-     */
-    public const JOB_ID = ilDustmanPlugin::PLUGIN_ID . '_null_job';
-
     /**
      * @inheritDoc
      */
     public function getId() : string
     {
-        return self::JOB_ID;
+        return '';
     }
 
     /**
@@ -55,7 +50,7 @@ class ilDustmanNullCronJob extends ilCronJob
      */
     public function run() : ilCronJobResult
     {
-        return new ilDustmanCronJobResult(
+        return new ilDustmanAbstractResult(
             ilCronJobResult::STATUS_FAIL,
             "this cron job should never be executed."
         );

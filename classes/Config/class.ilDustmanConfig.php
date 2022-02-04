@@ -50,32 +50,16 @@ class ilDustmanConfig extends ActiveRecord
     /**
      * configuration identifiers
      */
+    public const CNF_EXEC_ON_DATES      = 'checkdates';
     public const CNF_DELETE_GROUPS      = 'delete_groups';
     public const CNF_DELETE_COURSES     = 'delete_courses';
-    public const CNF_DELETE_IN_DAYS     = 'delete_objects_in_days';
     public const CNF_REMINDER_IN_DAYS   = 'reminder_in_days';
     public const CNF_REMINDER_TITLE     = 'reminder_title';
     public const CNF_REMINDER_CONTENT   = 'reminder_content';
     public const CNF_REMINDER_EMAIL     = 'email';
+    public const CNF_FILTER_OLDER_THAN  = 'delete_objects_in_days';
     public const CNF_FILTER_CATEGORIES  = 'dont_delete_objects_in_category';
-    public const CNF_FILTER_DATES       = 'checkdates';
     public const CNF_FILTER_KEYWORDS    = 'keywords';
-
-    /**
-     * @var string[] list of possible configurations.
-     */
-    public const CNF_IDENTIFIERS = [
-        self::CNF_DELETE_GROUPS,
-        self::CNF_DELETE_COURSES,
-        self::CNF_DELETE_IN_DAYS,
-        self::CNF_REMINDER_IN_DAYS,
-        self::CNF_REMINDER_TITLE,
-        self::CNF_REMINDER_CONTENT,
-        self::CNF_REMINDER_EMAIL,
-        self::CNF_FILTER_CATEGORIES,
-        self::CNF_FILTER_DATES,
-        self::CNF_FILTER_KEYWORDS,
-    ];
 
     /**
      * @var string mysql datetime format
@@ -130,19 +114,15 @@ class ilDustmanConfig extends ActiveRecord
     }
 
     /**
-     * @param mixed $value
+     * @param array|bool|string $value
      * @return ilDustmanConfig
      */
-    public function setValue($value)
+    public function setValue($value) : ilDustmanConfig
     {
         switch ($this->getIdentifier()) {
             case self::CNF_DELETE_COURSES:
             case self::CNF_DELETE_GROUPS:
                 $value = (bool) $value;
-                break;
-
-            case self::CNF_FILTER_DATES:
-                $value = $this->transformFromDatetime($value);
                 break;
         }
 
@@ -151,12 +131,13 @@ class ilDustmanConfig extends ActiveRecord
     }
 
     /**
-     * @return mixed
+     * @return array|bool|string
      */
     public function getValue()
     {
         $value = json_decode($this->config_value, true);
         switch ($this->getIdentifier()) {
+            case self::CNF_EXEC_ON_DATES:
             case self::CNF_FILTER_KEYWORDS:
             case self::CNF_FILTER_CATEGORIES:
                 return (array) $value;
@@ -164,9 +145,6 @@ class ilDustmanConfig extends ActiveRecord
             case self::CNF_DELETE_COURSES:
             case self::CNF_DELETE_GROUPS:
                 return (bool) $value;
-
-            case self::CNF_FILTER_DATES:
-                return $this->transformToDatetime($value);
 
             default:
                 // remove quotes which come from json_decode() in strings.
@@ -187,35 +165,5 @@ class ilDustmanConfig extends ActiveRecord
                 'Prohibited characters in primary key value $identifier: ' . $identifier
             );
         }
-    }
-
-    /**
-     * transforms a datetime object to a mysql compatible string.
-     * @param DateTimeImmutable|null $datetime
-     * @return string|null
-     */
-    protected function transformFromDatetime(?DateTimeImmutable $datetime) : ?string
-    {
-        if (null !== $datetime) {
-            return $datetime->format(self::MYSQL_DATETIME_FORMAT);
-        }
-
-        return null;
-    }
-
-    /**
-     * transforms a mysql datetime string into a php datetime object.
-     *
-     * @param string|null $value
-     * @return DateTime|null
-     */
-    protected function transformToDatetime(?string $value) : ?DateTimeImmutable
-    {
-        if (!empty($value)) {
-            $datetime = DateTimeImmutable::createFromFormat(self::MYSQL_DATETIME_FORMAT, $value);
-            return ($datetime) ?: null;
-        }
-
-        return null;
     }
 }

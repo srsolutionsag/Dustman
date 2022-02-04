@@ -7,13 +7,17 @@ namespace Composer\Autoload;
 class ComposerStaticInit34161b9ad583168d7b1d454b057eb2dc
 {
     public static $classMap = array (
+        'ilDustmanAbstractJob' => __DIR__ . '/../..' . '/classes/Cron/Job/class.ilDustmanAbstractJob.php',
         'ilDustmanConfig' => __DIR__ . '/../..' . '/classes/Config/class.ilDustmanConfig.php',
         'ilDustmanConfigForm' => __DIR__ . '/../..' . '/classes/Config/class.ilDustmanConfigForm.php',
         'ilDustmanConfigGUI' => __DIR__ . '/../..' . '/classes/class.ilDustmanConfigGUI.php',
-        'ilDustmanCron' => __DIR__ . '/../..',
+        'ilDustmanFailureResult' => __DIR__ . '/../..' . '/classes/Cron/Result/class.ilDustmanFailureResult.php',
+        'ilDustmanNotificationJob' => __DIR__ . '/../..' . '/classes/Cron/Job/class.ilDustmanNotificationJob.php',
+        'ilDustmanNullJob' => __DIR__ . '/../..' . '/classes/Cron/Job/class.ilDustmanNullJob.php',
         'ilDustmanPlugin' => __DIR__ . '/../..' . '/classes/class.ilDustmanPlugin.php',
+        'ilDustmanRemovalJob' => __DIR__ . '/../..' . '/classes/Cron/Job/class.ilDustmanRemovalJob.php',
         'ilDustmanRepository' => __DIR__ . '/../..' . '/classes/class.ilDustmanRepository.php',
-        'ilDustmanResult' => __DIR__ . '/../..',
+        'ilDustmanSuccessResult' => __DIR__ . '/../..' . '/classes/Cron/Result/class.ilDustmanSuccessResult.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

@@ -9,12 +9,44 @@ class ilDustmanPlugin extends ilCronHookPlugin
     /**
      * @var string plugin id, similar to plugin.php.
      */
-    public const PLUGIN_ID = 'dustman';
+    public const PLUGIN_ID = 'xdustman';
 
     /**
      * @var string plugin display-name.
      */
     public const PLUGIN_NAME = 'Dustman';
+
+    /**
+     * @var ilLogger
+     */
+    protected $logger;
+
+    /**
+     * @var ilDustmanRepository
+     */
+    protected $repository;
+
+    /**
+     * Safely initializes dependencies, as this class will also be
+     * loaded for CLI operations where they might not be available.
+     */
+    public function __construct()
+    {
+        global $DIC;
+
+        parent::__construct();
+
+        if ($DIC->offsetExists('ilDB') &&
+            $DIC->offsetExists('ilLoggerFactory') &&
+            $DIC->offsetExists('tree')
+        ) {
+            $this->logger = $DIC->logger()->root();
+            $this->repository = new ilDustmanRepository(
+                $DIC->database(),
+                $DIC->repositoryTree()
+            );
+        }
+    }
 
     /**
      * @return string
@@ -30,7 +62,8 @@ class ilDustmanPlugin extends ilCronHookPlugin
     public function getCronJobInstances() : array
     {
         return [
-            $this->getRemovalCronJob(),
+            $this->loadJobInstance(ilDustmanRemovalJob::class),
+            $this->loadJobInstance(ilDustmanNotificationJob::class),
         ];
     }
 
@@ -40,23 +73,28 @@ class ilDustmanPlugin extends ilCronHookPlugin
      */
     public function getCronJobInstance($a_job_id) : ilCronJob
     {
-        if (ilDustmanRemovalCronJob::JOB_ID === $a_job_id) {
-            return $this->getRemovalCronJob();
-        }
+        switch ($a_job_id) {
+            case ilDustmanRemovalJob::JOB_ID:
+                return $this->loadJobInstance(ilDustmanRemovalJob::class);
 
-        return new ilDustmanNullCronJob();
+            case ilDustmanNotificationJob::JOB_ID:
+                return $this->loadJobInstance(ilDustmanNotificationJob::class);
+
+            default:
+                return new ilDustmanNullJob();
+        }
     }
 
     /**
-     * @return ilDustmanRemovalCronJob
+     * @param string $class_name
+     * @return ilCronJob
      */
-    protected function getRemovalCronJob() : ilDustmanRemovalCronJob
+    protected function loadJobInstance(string $class_name) : ilCronJob
     {
-        global $DIC;
-        return new ilDustmanRemovalCronJob(
+        return new $class_name(
             $this,
-            new ilDustmanRepository($DIC->database()),
-            $DIC->logger()->root()
+            $this->repository,
+            $this->logger
         );
     }
 }

@@ -52,7 +52,7 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
 
         $interval = $this->config->getReminderInterval();
         $datetime = (1 <= $interval) ?
-            (new DateTime())->add(new DateInterval("+ $interval days")) :
+            (new DateTime())->add(new DateInterval("P{$interval}D")) :
             (new DateTime())
         ;
 

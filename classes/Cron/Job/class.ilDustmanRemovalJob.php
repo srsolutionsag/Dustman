@@ -55,7 +55,7 @@ class ilDustmanRemovalJob extends ilDustmanAbstractJob
         try {
             $this->repository->deleteObjects($this->getDeletableObjects());
         } catch (ilRepositoryException $e) {
-            $this->logger->error("[Dustman] " . $e->getMessage() . $e->getTraceAsString());
+            $this->logger->error("[Dustman] {$e->getMessage()} {$e->getTraceAsString()}");
         }
     }
 

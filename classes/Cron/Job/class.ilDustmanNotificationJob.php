@@ -71,6 +71,11 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
         foreach ($this->getDeletableObjects() as $object) {
             $object_admins = $this->repository->getAdminsByObjectRefId((int) $object['ref_id']);
             foreach ($object_admins as $admin_id) {
+                if (!ilObjUser::_exists($admin_id)) {
+                    $this->logger->error("[Dustman] Administrator in object '{$object['ref_id']}' with id '$admin_id' does not exist anymore.");
+                    continue;
+                }
+
                 $user = new ilObjUser($admin_id);
                 $this->logger->write(
                     "[Dustman] Writing email that obj {$object['title']} ({$object['obj_id']}) 
@@ -89,12 +94,16 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
         $sender_factory = $DIC["mail.mime.sender.factory"];
         $sender_system  = $sender_factory->system();
 
-        $mail = new ilMimeMail();
-        $mail->From($sender_system);
-        $mail->To($user->getEmail());
-        $mail->Subject($this->config->getReminderTitle() ?? 'Reminder');
-        $mail->Body($this->getEmailBody($object_data));
-        $mail->Send();
+        try {
+            $mail = new ilMimeMail();
+            $mail->From($sender_system);
+            $mail->To($user->getEmail());
+            $mail->Subject($this->config->getReminderTitle() ?? 'Reminder');
+            $mail->Body($this->getEmailBody($object_data));
+            $mail->Send();
+        } catch (Throwable $t) {
+            $this->logger->error("[Dustman] {$t->getMessage()} {$t->getTraceAsString()}");
+        }
     }
 
     protected function getEmailBody(array $object_data) : string

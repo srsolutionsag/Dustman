@@ -41,10 +41,11 @@ class ilDustmanRepository
 
         $matches = [];
         foreach ($this->db->fetchAll($this->db->query($query)) as $entry) {
+            $display_name = "{$entry['title']} ({$entry['ref_id']})";
             $matches[] = [
                 'value' => $entry['ref_id'],
-                'display' => $entry['title'],
-                'searchBy' => $entry['title'],
+                'display' => $display_name,
+                'searchBy' => $display_name,
             ];
         }
 

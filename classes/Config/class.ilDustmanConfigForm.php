@@ -237,7 +237,7 @@ class ilDustmanConfigForm
                     let value = event.detail.value;
 
                     // abort if value has not at least two characters.
-                    if (1 < value.length) { return; }
+                    // if (1 < value.length) { return; }
 
                     // show the loading animation and hide the suggestions.
                     tag.loading(true);
@@ -270,7 +270,7 @@ class ilDustmanConfigForm
 
                     // enforceWhitelist will make the whitelist persistent,
                     // previously found objects will therefore stay in it. 
-                    tag.settings.enforceWhitelist = true;
+                    // tag.settings.enforceWhitelist = true;
                     tag.on('input', searchCategories);
                 });
             ";

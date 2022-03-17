@@ -1,11 +1,16 @@
 {
     "name": "srag/dustman",
+    "license": "GPL-3.0",
     "authors": [
         {
-            "name": "Oskar Truffer",
-            "email": "ot@studer-raimann.ch"
+            "name": "sr solutions ag",
+            "email": "support@sr.solutions",
+            "homepage": "https://sr.solutions"
         }
     ],
+    "support": {
+        "issues": "https://support.sr.solutions"
+    },
     "autoload": {
         "classmap": [
             "classes/"

@@ -90,9 +90,16 @@ class ilDustmanNotificationJob extends ilDustmanRemovalJob
     {
         global $DIC;
 
-        /** @var $sender_factory ilMailMimeSenderFactory */
-        $sender_factory = $DIC["mail.mime.sender.factory"];
-        $sender_system  = $sender_factory->system();
+        if (!empty($this->config->getReminderEmail())) {
+            $sender_system = new ilMailMimeSenderUserByEmailAddress(
+                $DIC->settings(),
+                $this->config->getReminderEmail()
+            );
+        } else {
+            /** @var $sender_factory ilMailMimeSenderFactory */
+            $sender_factory = $DIC["mail.mime.sender.factory"];
+            $sender_system  = $sender_factory->system();
+        }
 
         try {
             $mail = new ilMimeMail();

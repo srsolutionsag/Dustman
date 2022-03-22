@@ -130,18 +130,12 @@ class ilDustmanRepository
     }
 
     /**
-     * @param array<string, mixed> $objects
-     * @return void
+     * @param int $ref_id
      * @throws ilRepositoryException
      */
-    public function deleteObjects(array $objects) : void
+    public function deleteObject(int $ref_id) : void
     {
-        $object_ref_ids = [];
-        foreach ($objects as $object) {
-            $object_ref_ids[] = $object['ref_id'];
-        }
-
-        ilRepUtil::deleteObjects(null, $object_ref_ids);
+        ilRepUtil::deleteObjects(null, [$ref_id]);
     }
 
     /**

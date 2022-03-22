@@ -52,10 +52,13 @@ class ilDustmanRemovalJob extends ilDustmanAbstractJob
 
     protected function deleteObjects() : void
     {
-        try {
-            $this->repository->deleteObjects($this->getDeletableObjects());
-        } catch (ilRepositoryException $e) {
-            $this->logger->error("[Dustman] {$e->getMessage()} {$e->getTraceAsString()}");
+        foreach ($this->getDeletableObjects() as $object) {
+            try {
+                $this->repository->deleteObject((int) $object['ref_id']);
+            } catch (ilRepositoryException $e) {
+                $this->logger->error("[Dustman] Failed to delete object '{$object['ref_id']}': {$e->getMessage()} {$e->getTraceAsString()}");
+                continue;
+            }
         }
     }
 
